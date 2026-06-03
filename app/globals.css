@@ -1,0 +1,195 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+
+  /* ── 라운드 토큰 ──────────────────────────────────── */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;   /* 카드 */
+  --radius-xl: 20px;
+  --radius-2xl: 24px;  /* 시트 */
+  --radius-3xl: 28px;
+  --radius-pill: 9999px; /* 버튼 pill */
+
+  /* ── 두잎 서피스 팔레트 ──────────────────────────── */
+  --color-duip-cream:  #FBF6EE;  /* App background */
+  --color-duip-paper:  #FFFCF7;  /* Raised card / sheet */
+  --color-duip-sand:   #F4EBD9;  /* Sunken / inactive chip */
+  --color-duip-bisque: #EADFC7;  /* Divider / subtle band */
+  --color-duip-taupe:  #D9C8AC;  /* Stronger divider */
+
+  /* ── 우드 브랜드 램프 ─────────────────────────────── */
+  --color-duip-wood-900: #34200E;
+  --color-duip-wood-800: #5C3A1F; /* Brand primary */
+  --color-duip-wood-700: #7B5530;
+  --color-duip-wood-600: #9A7553;
+  --color-duip-wood-500: #B69677;
+  --color-duip-wood-400: #CFB69A;
+
+  /* ── 잉크 (텍스트) ───────────────────────────────── */
+  --color-duip-ink:       #2A1B0E;
+  --color-duip-ink-soft:  #5C3A1F;
+  --color-duip-ink-mute:  #8A7359;
+  --color-duip-ink-fade:  #B09779;
+
+  /* ── 아이템 타입 액센트 ──────────────────────────── */
+  --color-duip-sage:        #7C9466; /* 할일 */
+  --color-duip-sage-tint:   #E6EDD8;
+  --color-duip-blush:       #C77C6A; /* 소망 */
+  --color-duip-blush-tint:  #F4DCD3;
+  --color-duip-mauve:       #8C7691; /* 기타 */
+  --color-duip-mauve-tint:  #ECE3EF;
+
+  /* ── 간격 (8pt 그리드) ───────────────────────────── */
+  --spacing-1: 4px;
+  --spacing-2: 8px;
+  --spacing-3: 12px;
+  --spacing-4: 16px;
+  --spacing-5: 20px;
+  --spacing-6: 24px;
+  --spacing-7: 32px;
+  --spacing-8: 40px;
+  --spacing-9: 56px;
+
+  /* ── 그림자 ──────────────────────────────────────── */
+  --shadow-1: 0 1px 2px rgba(74,46,22,0.05), 0 1px 0 rgba(74,46,22,0.02);
+  --shadow-2: 0 2px 8px rgba(74,46,22,0.06), 0 1px 2px rgba(74,46,22,0.04);
+  --shadow-3: 0 8px 24px rgba(74,46,22,0.08), 0 2px 6px rgba(74,46,22,0.04);
+  --shadow-4: 0 18px 40px rgba(74,46,22,0.12), 0 4px 10px rgba(74,46,22,0.05);
+}
+
+:root {
+  --background: #FBF6EE;
+  --foreground: #2A1B0E;
+  --card: #FFFCF7;
+  --card-foreground: #2A1B0E;
+  --popover: #FFFCF7;
+  --popover-foreground: #2A1B0E;
+  --primary: #5C3A1F;
+  --primary-foreground: #FBF6EE;
+  --secondary: #F4EBD9;
+  --secondary-foreground: #8A7359;
+  --muted: #F4EBD9;
+  --muted-foreground: #8A7359;
+  --accent: #7C9466;
+  --accent-foreground: #FBF6EE;
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: #EADFC7;
+  --input: #EADFC7;
+  --ring: #5C3A1F;
+  --radius: 1rem;
+  --sidebar: #F4EBD9;
+  --sidebar-foreground: #2A1B0E;
+  --sidebar-primary: #5C3A1F;
+  --sidebar-primary-foreground: #FBF6EE;
+  --sidebar-accent: #EADFC7;
+  --sidebar-accent-foreground: #2A1B0E;
+  --sidebar-border: #EADFC7;
+  --sidebar-ring: #5C3A1F;
+}
+
+/* ── 로그인 페이지 애니메이션 ─────────────────────────────────── */
+@keyframes loginSunPulse {
+  0%,100% { transform:scale(.96); opacity:.6 }
+  50%      { transform:scale(1.08); opacity:1 }
+}
+@keyframes loginSunCore {
+  0%,100% { opacity:.7; box-shadow:0 0 18px rgba(250,224,160,0.4) }
+  50%     { opacity:1;  box-shadow:0 0 38px rgba(250,224,160,0.8) }
+}
+@keyframes loginDrift {
+  0%   { transform:translateX(-8px) }
+  50%  { transform:translateX(14px) }
+  100% { transform:translateX(-8px) }
+}
+@keyframes loginFall {
+  0%   { transform:translateY(-40px); opacity:0 }
+  15%  { opacity:.7 }
+  85%  { opacity:.7 }
+  100% { transform:translateY(220px); opacity:0 }
+}
+@keyframes loginRainbowBreathe {
+  0%  { opacity:0 } 24% { opacity:.5 } 58% { opacity:.5 } 84% { opacity:0 } 100% { opacity:0 }
+}
+@keyframes loginPetalFall {
+  0%   { transform:translateY(-20px) rotate(0deg); opacity:0 }
+  10%  { opacity:.85 }
+  90%  { opacity:.85 }
+  100% { transform:translateY(420px) translateX(40px) rotate(220deg); opacity:0 }
+}
+@keyframes loginGrowStem {
+  to { transform:translateX(-50%) scaleY(1) }
+}
+@keyframes loginUnfurlL {
+  to { transform:scale(1) rotate(-8deg); opacity:1 }
+}
+@keyframes loginUnfurlR {
+  to { transform:scale(1) rotate(8deg); opacity:1 }
+}
+@keyframes loginTwinkle {
+  0%,100% { opacity:0; transform:scale(.6) }
+  50%     { opacity:.9; transform:scale(1) }
+}
+@keyframes loginStepIn {
+  from { opacity:0; transform:translateY(10px) }
+  to   { opacity:1; transform:none }
+}
+@keyframes loginSway {
+  0%,100% { transform:translateX(-50%) rotate(-2.2deg) }
+  50%     { transform:translateX(-50%) rotate(2.2deg) }
+}
+.login-drop {
+  position:absolute; width:1.6px; border-radius:2px;
+  background:linear-gradient(180deg,rgba(150,180,200,0) 0%,rgba(150,180,200,0.55) 60%,rgba(150,180,200,0) 100%);
+  animation:loginFall linear infinite;
+}
+.login-petal {
+  position:absolute; top:-20px; width:12px; height:12px;
+  opacity:0; animation:loginPetalFall linear infinite;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-gowun-dodum), "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  }
+  html {
+    @apply h-full;
+  }
+}

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- 배경 -->
+  <rect width="32" height="32" rx="7.5" fill="#4A2C14"/>
+
+  <!-- 줄기 -->
+  <line x1="16" y1="27" x2="16" y2="19" stroke="#C8A87A" stroke-width="1.6" stroke-linecap="round"/>
+
+  <!-- 왼쪽 잎 -->
+  <path d="M16 20 C12 16 6 11 9 6 C13 8 16 14 16 20Z" fill="#A8CC8A"/>
+  <!-- 왼쪽 잎 결 -->
+  <path d="M16 19 C13 15 10 11 9 7" stroke="#78A05A" stroke-width="0.75" stroke-linecap="round" fill="none" opacity="0.65"/>
+
+  <!-- 오른쪽 잎 -->
+  <path d="M16 20 C20 16 26 11 23 6 C19 8 16 14 16 20Z" fill="#C8E0A0"/>
+  <!-- 오른쪽 잎 결 -->
+  <path d="M16 19 C19 15 22 11 23 7" stroke="#90B86A" stroke-width="0.75" stroke-linecap="round" fill="none" opacity="0.65"/>
+</svg>
