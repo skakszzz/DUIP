@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { useDragSheet } from '@/lib/use-drag-sheet';
 import { EmptyGarden } from '@/components/empty-states';
@@ -137,46 +137,72 @@ export default function GardenView({ workspaceId, year, currentMonth, pots: init
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [saving, setSaving] = useState(false);
   const [screenshotMode, setScreenshotMode] = useState(false);
+  const [editMode, setEditMode] = useState(false);
 
-  // 화분 드래그 배치
+  // 드래그 — ref로 관리해 stale closure 완전 방지
   const containerRef = useRef<HTMLDivElement>(null);
   const [draggingMonth, setDraggingMonth] = useState<number | null>(null);
   const [isDragActive, setIsDragActive] = useState(false);
+  const isDragActiveRef = useRef(false);
+  const draggingMonthRef = useRef<number | null>(null);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const potsRef = useRef<MonthlyPot[]>(initialPots);
+  useEffect(() => { potsRef.current = pots; }, [pots]);
+
+  function startDrag(month: number) {
+    isDragActiveRef.current = true;
+    draggingMonthRef.current = month;
+    setDraggingMonth(month);
+    setIsDragActive(true);
+    if (navigator.vibrate) navigator.vibrate(30);
+  }
+
+  function endDrag() {
+    const month = draggingMonthRef.current;
+    if (month !== null) saveDragPosition(month);
+    isDragActiveRef.current = false;
+    draggingMonthRef.current = null;
+    setDraggingMonth(null);
+    setIsDragActive(false);
+  }
 
   function handlePotPointerDown(month: number, e: React.PointerEvent) {
     e.currentTarget.setPointerCapture(e.pointerId);
-    longPressTimer.current = setTimeout(() => {
-      setDraggingMonth(month);
-      setIsDragActive(true);
-    }, 500);
+    if (editMode) {
+      startDrag(month);
+    } else {
+      longPressTimer.current = setTimeout(() => startDrag(month), 500);
+    }
   }
 
-  function handlePotPointerMove(e: React.PointerEvent) {
-    if (!isDragActive || draggingMonth === null || !containerRef.current) return;
+  // 컨테이너 레벨 이동 — 빠른 움직임에도 손실 없음
+  function handleContainerPointerMove(e: React.PointerEvent) {
+    if (!isDragActiveRef.current || draggingMonthRef.current === null || !containerRef.current) return;
     e.preventDefault();
     const rect = containerRef.current.getBoundingClientRect();
-    const x = Math.min(98, Math.max(2, ((e.clientX - rect.left) / rect.width) * 100));
-    const y = Math.min(60, Math.max(5, ((rect.bottom - e.clientY) / rect.height) * 100));
-    setPots(prev => prev.map(p => p.month === draggingMonth ? { ...p, pos_x: x, pos_y: y } : p));
+    const x = Math.min(96, Math.max(4, ((e.clientX - rect.left) / rect.width) * 100));
+    const y = Math.min(58, Math.max(5, ((rect.bottom - e.clientY) / rect.height) * 100));
+    const m = draggingMonthRef.current;
+    setPots(prev => prev.map(p => p.month === m ? { ...p, pos_x: x, pos_y: y } : p));
   }
 
-  const saveDragPosition = useCallback(async (month: number) => {
-    const pot = pots.find(p => p.month === month);
+  function handleContainerPointerUp() {
+    if (longPressTimer.current) clearTimeout(longPressTimer.current);
+    if (isDragActiveRef.current) endDrag();
+  }
+
+  async function saveDragPosition(month: number) {
+    const pot = potsRef.current.find(p => p.month === month);
     if (!pot || pot.pos_x == null) return;
     const supabase = (await import('@/lib/supabase/client')).createClient();
     await supabase.from('monthly_pots')
       .update({ pos_x: pot.pos_x, pos_y: pot.pos_y })
       .eq('id', pot.id);
-  }, [pots]);
+  }
 
-  function handlePotPointerUp(month: number) {
-    if (longPressTimer.current) clearTimeout(longPressTimer.current);
-    if (isDragActive) {
-      saveDragPosition(month);
-      setIsDragActive(false);
-      setDraggingMonth(null);
-    }
+  function exitEditMode() {
+    if (isDragActiveRef.current) endDrag();
+    setEditMode(false);
   }
 
   const treeEmoji = TREE_EMOJI[treeType] ?? '🌳';
@@ -215,11 +241,27 @@ export default function GardenView({ workspaceId, year, currentMonth, pots: init
   return (
     <div
       ref={containerRef}
+      onPointerMove={handleContainerPointerMove}
+      onPointerUp={handleContainerPointerUp}
+      onPointerCancel={handleContainerPointerUp}
       style={{
         position: 'relative', width: '100%', height: 'calc(100svh - 60px)',
         overflow: 'hidden', minHeight: 520, background: '#EAF1F0',
+        touchAction: isDragActive ? 'none' : 'auto',
       }}
     >
+      <style>{`
+        @keyframes pot-wobble {
+          0%,100% { transform: translateX(-50%) rotate(0deg); }
+          25% { transform: translateX(-50%) rotate(-2.5deg); }
+          75% { transform: translateX(-50%) rotate(2.5deg); }
+        }
+        @keyframes pot-wobble-cur {
+          0%,100% { transform: translateX(-50%) scale(1.15) rotate(0deg); }
+          25% { transform: translateX(-50%) scale(1.15) rotate(-2.5deg); }
+          75% { transform: translateX(-50%) scale(1.15) rotate(2.5deg); }
+        }
+      `}</style>
 
       {/* 낮 수채화 배경 SVG */}
       <svg viewBox="0 0 390 844" preserveAspectRatio="xMidYMid slice"
@@ -281,12 +323,12 @@ export default function GardenView({ workspaceId, year, currentMonth, pots: init
         ))}
       </svg>
 
-      {/* 보호수 — 화면 중앙 상단, 크게 */}
+      {/* 보호수 */}
       <button
-        onClick={() => setShowTreeSheet(true)}
+        onClick={() => { if (!isDragActive) setShowTreeSheet(true); }}
         style={{
           position: 'absolute',
-          left: '50%', top: -116,
+          left: '50%', top: -48,
           transform: 'translateX(-50%)',
           background: 'none', border: 'none', cursor: 'pointer',
           display: 'flex', flexDirection: 'column', alignItems: 'center',
@@ -300,7 +342,7 @@ export default function GardenView({ workspaceId, year, currentMonth, pots: init
           width:150, height:26, borderRadius:'50%',
           background:'rgba(58,42,18,0.20)', filter:'blur(7px)', zIndex:-1,
         }}/>
-        <TreeImage treeType={treeType} treeEmoji={treeEmoji} size={498} />
+        <TreeImage treeType={treeType} treeEmoji={treeEmoji} size={310} />
         <div style={{
           marginTop: 6, fontSize: 11, fontWeight: 800, color: '#FBF6EE',
           background: 'rgba(20,8,2,0.45)', backdropFilter: 'blur(4px)',
@@ -311,7 +353,7 @@ export default function GardenView({ workspaceId, year, currentMonth, pots: init
         </div>
       </button>
 
-      {/* 월별 화분들 — 보호수 앞·양옆 3열 배치 */}
+      {/* 월별 화분들 */}
       {Array.from({ length: 12 }).map((_, i) => {
         const month = i + 1;
         if (month > currentMonth) return null;
@@ -324,36 +366,40 @@ export default function GardenView({ workspaceId, year, currentMonth, pots: init
         const isDragging = draggingMonth === month && isDragActive;
         const left   = pot?.pos_x != null ? pot.pos_x : pos.left;
         const bottom = pot?.pos_y != null ? pot.pos_y : pos.bottomPct;
+        const potSize = isCurrent ? 60 : 48;
+
+        const wobble = editMode && !isDragging
+          ? { animation: isCurrent ? 'pot-wobble-cur 0.5s ease-in-out infinite' : 'pot-wobble 0.5s ease-in-out infinite' }
+          : {};
 
         return (
           <button
             key={month}
-            onClick={() => { if (!isDragActive) setSelectedMonth(month); }}
+            onClick={() => { if (!isDragActive && !editMode) setSelectedMonth(month); }}
             onPointerDown={(e) => handlePotPointerDown(month, e)}
-            onPointerMove={handlePotPointerMove}
-            onPointerUp={() => handlePotPointerUp(month)}
-            onPointerCancel={() => handlePotPointerUp(month)}
             style={{
               position: 'absolute',
               left: `${left}%`,
               bottom: `${bottom}%`,
-              background: 'none', border: 'none', cursor: isDragging ? 'grabbing' : 'pointer',
+              background: 'none', border: 'none',
+              cursor: isDragging ? 'grabbing' : editMode ? 'grab' : 'pointer',
               display: 'flex', flexDirection: 'column', alignItems: 'center',
               transform: isCurrent && !isDragging ? 'translateX(-50%) scale(1.15)' : 'translateX(-50%)',
               transformOrigin: 'bottom center',
               transition: isDragging ? 'none' : 'transform 0.2s',
               filter: isDragging
-                ? 'drop-shadow(0 0 20px rgba(92,58,31,0.5))'
+                ? 'drop-shadow(0 0 24px rgba(92,58,31,0.55))'
                 : isCurrent ? 'drop-shadow(0 0 14px rgba(242,198,110,0.85))' : 'none',
-              zIndex: isDragging ? 20 : isCurrent ? pos.zIndex + 1 : pos.zIndex,
+              zIndex: isDragging ? 20 : editMode ? pos.zIndex + 10 : isCurrent ? pos.zIndex + 1 : pos.zIndex,
               touchAction: 'none',
+              ...wobble,
             }}
           >
             <PotCell
               stage={stage}
               plantId={pot?.plant_id ?? null}
               soilType={pot?.soil_type ?? 'rich'}
-              size={isCurrent ? 44 : 38}
+              size={potSize}
             />
             <div style={{
               marginTop: 2, fontSize: 9.5, fontWeight: 800,
@@ -369,21 +415,36 @@ export default function GardenView({ workspaceId, year, currentMonth, pots: init
         );
       })}
 
-      {/* 드래그 중 안내 */}
-      {isDragActive && (
+      {/* 편집 모드 상단 바 */}
+      {editMode && (
         <div style={{
           position: 'absolute', top: 14, left: '50%', transform: 'translateX(-50%)',
-          background: 'rgba(92,58,31,0.85)', backdropFilter: 'blur(6px)',
-          borderRadius: 9999, padding: '7px 18px',
-          fontSize: 12, fontWeight: 700, color: '#FBF6EE',
-          whiteSpace: 'nowrap', zIndex: 25, pointerEvents: 'none',
+          zIndex: 30, display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap',
         }}>
-          원하는 위치에 놓아주세요
+          <div style={{
+            background: 'rgba(251,246,238,0.95)', backdropFilter: 'blur(8px)',
+            borderRadius: 9999, padding: '8px 16px',
+            fontSize: 12, fontWeight: 700, color: '#5C3A1F',
+            boxShadow: '0 2px 12px rgba(74,46,22,0.18)',
+          }}>
+            {isDragActive ? '원하는 위치에 놓아주세요' : '화분을 끌어서 위치를 바꿔보세요'}
+          </div>
+          {!isDragActive && (
+            <button
+              onClick={exitEditMode}
+              style={{
+                height: 36, padding: '0 16px', borderRadius: 9999, border: 'none',
+                background: '#5C3A1F', color: '#FBF6EE',
+                fontSize: 12, fontWeight: 800, cursor: 'pointer',
+                boxShadow: '0 2px 8px rgba(74,46,22,0.3)',
+              }}
+            >완료</button>
+          )}
         </div>
       )}
 
       {/* 화분이 1개 이하일 때 동산 안내 */}
-      {pots.filter(p => p.plant_id).length <= 1 && (
+      {pots.filter(p => p.plant_id).length <= 1 && !editMode && (
         <EmptyGarden month={currentMonth} />
       )}
 
@@ -407,6 +468,21 @@ export default function GardenView({ workspaceId, year, currentMonth, pots: init
         <span style={{ fontSize: 11.5, color: '#7B5530', fontWeight: 600 }}>
           완료 {totalCompleted}잎
         </span>
+        <div style={{ width: 1, height: 12, background: '#D9C8AC' }}/>
+        <button
+          onClick={() => setEditMode(v => !v)}
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+            display: 'flex', alignItems: 'center', gap: 4,
+            fontSize: 11.5, fontWeight: 700, color: editMode ? '#C77C6A' : '#7B5530',
+          }}
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+            <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"/>
+          </svg>
+          위치 조정
+        </button>
         <div style={{ width: 1, height: 12, background: '#D9C8AC' }}/>
         <button
           onClick={() => setScreenshotMode(true)}
