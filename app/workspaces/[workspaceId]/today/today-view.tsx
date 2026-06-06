@@ -611,7 +611,7 @@ export default function TodayView({ workspaceId, userId, initialItems, members, 
                 style={{
                   display: 'flex', alignItems: 'center', gap: 10,
                   background: 'linear-gradient(135deg, rgba(154,124,201,0.15), rgba(199,124,106,0.12))',
-                  borderRadius: 18, padding: '12px 14px',
+                  borderRadius: 18, padding: '12px 40px 12px 14px',
                   textDecoration: 'none',
                   boxShadow: '0 1px 4px rgba(74,46,22,0.06)',
                 }}
