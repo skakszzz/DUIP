@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import GardenView from './garden-view';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 20;
 
 interface Props {
   params: Promise<{ workspaceId: string }>;

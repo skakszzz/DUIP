@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import CalendarView from './calendar-view';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 10;
 
 interface Props {
   params: Promise<{ workspaceId: string }>;
@@ -15,33 +15,24 @@ export default async function CalendarPage({ params }: Props) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
-  const { data: workspace } = await supabase
-    .from('workspaces')
-    .select('id, name')
-    .eq('id', workspaceId)
-    .single();
+  const [
+    { data: workspace },
+    { data: membership },
+    { data: members },
+    { data: items },
+  ] = await Promise.all([
+    supabase.from('workspaces').select('id, name').eq('id', workspaceId).single(),
+    supabase.from('memberships').select('display_name, avatar, color').eq('workspace_id', workspaceId).eq('user_id', user.id).single(),
+    supabase.from('memberships').select('user_id, display_name, avatar, color').eq('workspace_id', workspaceId),
+    supabase.from('items')
+      .select('id, title, type, event_date, event_end_date, is_completed, owner_user_id')
+      .eq('workspace_id', workspaceId)
+      .not('event_date', 'is', null)
+      .order('event_date', { ascending: true }),
+  ]);
+
   if (!workspace) redirect('/workspaces');
-
-  const { data: membership } = await supabase
-    .from('memberships')
-    .select('display_name, avatar, color')
-    .eq('workspace_id', workspaceId)
-    .eq('user_id', user.id)
-    .single();
   if (!membership) redirect('/workspaces');
-
-  const { data: members } = await supabase
-    .from('memberships')
-    .select('user_id, display_name, avatar, color')
-    .eq('workspace_id', workspaceId);
-
-  // event_date가 있는 항목만 캘린더에 표시
-  const { data: items } = await supabase
-    .from('items')
-    .select('id, title, type, event_date, event_end_date, is_completed, owner_user_id')
-    .eq('workspace_id', workspaceId)
-    .not('event_date', 'is', null)
-    .order('event_date', { ascending: true });
 
   return (
     <div className="min-h-screen bg-[#FBF6EE]">

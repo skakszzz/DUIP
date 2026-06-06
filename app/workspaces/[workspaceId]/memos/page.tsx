@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation';
 import MemosView from './memos-view';
 import type { MemoRow } from '@/components/memo-shared';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 10;
 
 interface Props {
   params: Promise<{ workspaceId: string }>;
