@@ -76,43 +76,36 @@ const TYPE_OPTIONS: { value: ItemType; label: string }[] = [
   { value: 'ETC',  label: '기타' },
 ];
 
-function getTodayLabel() {
-  const d = new Date();
+function getTodayLabel(serverToday: string) {
+  // 'T12:00:00' 추가로 로컬 타임존에서 올바른 요일/날짜 파싱
+  const d = new Date(serverToday + 'T12:00:00');
   const months = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
   const weekdays = ['일요일','월요일','화요일','수요일','목요일','금요일','토요일'];
   return { month: months[d.getMonth()], date: d.getDate(), day: weekdays[d.getDay()] };
 }
 
-function getCurrentMonth() {
-  return new Date().getMonth() + 1;
+function getCurrentMonth(serverToday: string) {
+  return parseInt(serverToday.slice(5, 7), 10);
 }
 
 // ── 반복 헬퍼 ────────────────────────────────────────────────────
-function todayStr(): string {
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
-}
-
-function daysUntil(dateStr: string): number {
-  const today = new Date(); today.setHours(0,0,0,0);
+function daysUntil(dateStr: string, serverToday: string): number {
+  const today = new Date(serverToday + 'T00:00:00');
   const target = new Date(dateStr + 'T00:00:00');
   return Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 }
 
-function matchesToday(rule: RecurrenceRule): boolean {
-  const d = new Date();
+function matchesToday(rule: RecurrenceRule, serverToday: string): boolean {
+  const d = new Date(serverToday + 'T12:00:00');
   if (rule.pattern === 'daily') return true;
   if (rule.pattern === 'weekly') return rule.weekdays?.includes(d.getDay()) ?? false;
   if (rule.pattern === 'monthly') return rule.monthDay === d.getDate();
   return false;
 }
 
-function isCompletedToday(item: Item): boolean {
+function isCompletedToday(item: Item, serverToday: string): boolean {
   if (!item.is_recurring) return item.is_completed;
-  return item.recurrence_last_done === todayStr();
+  return item.recurrence_last_done === serverToday;
 }
 
 // ── 타입 아이콘 ──────────────────────────────────────────────────
@@ -131,13 +124,15 @@ function TypeIcon({ type, size = 16, color }: { type: ItemType; size?: number; c
 
 // ── 항목 행 (Pebble) ─────────────────────────────────────────────
 function Pebble({
-  item, onToggle, onClick, ownerMember, showDateBadge,
+  item, onToggle, onClick, ownerMember, showDateBadge, completed, serverToday,
 }: {
   item: Item;
   onToggle: (e: React.MouseEvent) => void;
   onClick: () => void;
   ownerMember?: Member;
   showDateBadge?: boolean;
+  completed: boolean;
+  serverToday: string;
 }) {
   const color = TYPE_COLOR[item.type];
   const tint  = TYPE_TINT[item.type];
@@ -146,7 +141,7 @@ function Pebble({
     <div
       onClick={onClick}
       style={{
-        background: item.is_completed
+        background: completed
           ? `linear-gradient(180deg, ${tint}55 0%, #FFFCF7 100%)`
           : '#FFFCF7',
         borderRadius: 22,
@@ -154,7 +149,7 @@ function Pebble({
         display: 'flex',
         alignItems: 'center',
         gap: 12,
-        boxShadow: item.is_completed
+        boxShadow: completed
           ? '0 1px 2px rgba(74,46,22,0.05), 0 1px 0 rgba(74,46,22,0.02)'
           : '0 2px 8px rgba(74,46,22,0.06), 0 1px 2px rgba(74,46,22,0.04)',
         cursor: 'pointer',
@@ -166,14 +161,14 @@ function Pebble({
         style={{
           flexShrink: 0,
           width: 36, height: 36, borderRadius: 9999,
-          background: item.is_completed ? color : tint,
+          background: completed ? color : tint,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           border: 'none', cursor: 'pointer',
-          boxShadow: item.is_completed ? 'none' : `inset 0 0 0 2px ${color}28`,
+          boxShadow: completed ? 'none' : `inset 0 0 0 2px ${color}28`,
           transition: 'all 0.15s',
         }}
       >
-        {item.is_completed ? (
+        {completed ? (
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round">
             <path d="M5 12.5 10 17.5 19 7.5"/>
           </svg>
@@ -187,8 +182,8 @@ function Pebble({
         <div style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 0 }}>
           <div style={{
             fontSize: 15, fontWeight: 700,
-            color: item.is_completed ? '#B09779' : '#2A1B0E',
-            textDecorationLine: item.is_completed ? 'line-through' : 'none',
+            color: completed ? '#B09779' : '#2A1B0E',
+            textDecorationLine: completed ? 'line-through' : 'none',
             textDecorationColor: '#B09779',
             letterSpacing: '-0.015em', lineHeight: 1.3,
             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
@@ -213,7 +208,7 @@ function Pebble({
 
       {/* D-N 배지 */}
       {showDateBadge && item.event_date && (() => {
-        const d = daysUntil(item.event_date);
+        const d = daysUntil(item.event_date, serverToday);
         const label = d === 0 ? 'D-Day' : d > 0 ? `D-${d}` : `D+${Math.abs(d)}`;
         const bg = d === 0 ? '#C77C6A' : d <= 3 ? '#E8A87C' : '#A0B88A';
         return (
@@ -489,12 +484,12 @@ export default function TodayView({ workspaceId, userId, initialItems, members, 
 
   // D-0 아이템: event_date = 오늘인 일반 항목도 오늘 섹션에 포함
   const visibleItems = items.filter(i => {
-    if (i.is_recurring) return i.recurrence_rule != null && matchesToday(i.recurrence_rule);
+    if (i.is_recurring) return i.recurrence_rule != null && matchesToday(i.recurrence_rule, today);
     if (i.event_date && i.event_date > today) return false; // 미래 날짜 → UPCOMING으로
     return true;
   });
   const total = visibleItems.length;
-  const completedCount = visibleItems.filter(isCompletedToday).length;
+  const completedCount = visibleItems.filter(i => isCompletedToday(i, today)).length;
 
   // UPCOMING: 미완료만
   const upcomingItems = items
@@ -506,8 +501,8 @@ export default function TodayView({ workspaceId, userId, initialItems, members, 
     !i.is_recurring && i.event_date && i.event_date > today && i.event_date <= inThirtyDays && i.is_completed
   );
   const pct = total > 0 ? completedCount / total : 0;
-  const month = getCurrentMonth();
-  const todayLabel = getTodayLabel();
+  const month = getCurrentMonth(today);
+  const todayLabel = getTodayLabel(today);
 
   // 100% 완료 시 블룸 오버레이 — 오늘 첫 완료 1회만
   // localStorage를 직접 읽어 effect 실행 순서 의존성 제거
@@ -523,7 +518,7 @@ export default function TodayView({ workspaceId, userId, initialItems, members, 
 
   async function toggleComplete(item: Item) {
     const supabase = createClient();
-    const next = !isCompletedToday(item);
+    const next = !isCompletedToday(item, today);
 
     if (!item.is_recurring) {
       setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, is_completed: next } : i)));
@@ -533,7 +528,6 @@ export default function TodayView({ workspaceId, userId, initialItems, members, 
         completed_by: next ? userId : null,
       }).eq('id', item.id);
     } else {
-      const today = todayStr();
       setItems((prev) => prev.map((i) =>
         i.id === item.id ? { ...i, recurrence_last_done: next ? today : null } : i
       ));
@@ -573,8 +567,8 @@ export default function TodayView({ workspaceId, userId, initialItems, members, 
     return members.find((m) => m.user_id === uid);
   }
 
-  const completedItems = [...visibleItems.filter(isCompletedToday), ...completedFromUpcoming];
-  const todoItems = visibleItems.filter((i) => !isCompletedToday(i));
+  const completedItems = [...visibleItems.filter(i => isCompletedToday(i, today)), ...completedFromUpcoming];
+  const todoItems = visibleItems.filter((i) => !isCompletedToday(i, today));
 
   return (
     <div className="min-h-screen bg-[#FBF6EE]">
@@ -706,6 +700,8 @@ export default function TodayView({ workspaceId, userId, initialItems, members, 
                     <Pebble
                       key={item.id}
                       item={item}
+                      completed={isCompletedToday(item, today)}
+                      serverToday={today}
                       onToggle={(e) => { e.stopPropagation(); toggleComplete(item); }}
                       onClick={() => setEditingItem(item)}
                       ownerMember={getMember(item.owner_user_id)}
@@ -723,6 +719,8 @@ export default function TodayView({ workspaceId, userId, initialItems, members, 
                       <Pebble
                         key={item.id}
                         item={item}
+                        completed={isCompletedToday(item, today)}
+                        serverToday={today}
                         onToggle={(e) => { e.stopPropagation(); setConfirmItem(item); }}
                         onClick={() => setEditingItem(item)}
                         ownerMember={getMember(item.owner_user_id)}
@@ -742,6 +740,8 @@ export default function TodayView({ workspaceId, userId, initialItems, members, 
                       <Pebble
                         key={item.id}
                         item={item}
+                        completed={isCompletedToday(item, today)}
+                        serverToday={today}
                         onToggle={(e) => { e.stopPropagation(); toggleComplete(item); }}
                         onClick={() => setEditingItem(item)}
                         ownerMember={getMember(item.owner_user_id)}
