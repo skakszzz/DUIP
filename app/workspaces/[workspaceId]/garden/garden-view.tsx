@@ -39,6 +39,7 @@ interface MonthItem {
 interface Props {
   workspaceId: string;
   year: number;
+  currentMonth: number;
   pots: MonthlyPot[];
   monthStats: MonthStat[];
   treeType: string;
@@ -126,9 +127,8 @@ const POT_POSITIONS: { left: number; bottomPct: number; zIndex: number }[] = [
   { left: 50, bottomPct: 31.0, zIndex: 1 }, // 12월
 ];
 
-export default function GardenView({ workspaceId, year, pots: initialPots, monthStats, treeType, workspaceName }: Props) {
+export default function GardenView({ workspaceId, year, currentMonth, pots: initialPots, monthStats, treeType, workspaceName }: Props) {
   const router = useRouter();
-  const currentMonth = new Date().getMonth() + 1;
   const [pots, setPots] = useState<MonthlyPot[]>(initialPots);
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
   const [showTreeSheet, setShowTreeSheet] = useState(false);

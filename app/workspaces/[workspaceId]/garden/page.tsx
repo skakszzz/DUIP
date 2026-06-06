@@ -99,6 +99,7 @@ export default async function GardenPage({ params }: Props) {
     <GardenView
       workspaceId={workspaceId}
       year={year}
+      currentMonth={currentMonth}
       pots={syncedPots}
       monthStats={monthStats}
       treeType={workspace.tree_type}
