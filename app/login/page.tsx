@@ -86,7 +86,8 @@ export default function LoginPage() {
       return;
     }
     setVerifyState('ok');
-    setTimeout(() => router.replace('/workspaces'), 600);
+    const redirectTo = new URLSearchParams(window.location.search).get('redirect') ?? '/workspaces';
+    setTimeout(() => router.replace(redirectTo), 600);
   }
 
   function onCodeChange(i: number, v: string) {
