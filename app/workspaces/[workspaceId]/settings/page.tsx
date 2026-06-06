@@ -68,6 +68,22 @@ export default async function SettingsPage({ params }: Props) {
         </div>
 
         <InviteSection workspaceId={workspaceId} userId={user.id} />
+
+        <div style={{ marginTop: 32 }}>
+          <Link
+            href="/workspaces"
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              height: 46, borderRadius: 9999,
+              border: '1.5px solid #EADFC7',
+              background: '#FFFCF7',
+              fontSize: 14, fontWeight: 700, color: '#7B5530',
+              textDecoration: 'none',
+            }}
+          >
+            🌿 동산 선택으로
+          </Link>
+        </div>
       </div>
     </div>
   );
