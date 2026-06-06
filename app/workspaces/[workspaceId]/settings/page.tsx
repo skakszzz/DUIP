@@ -4,6 +4,8 @@ import InviteSection from './invite-section';
 import PushNotifManager from '@/components/push-notif-manager';
 import DeleteWorkspaceButton from './delete-workspace-button';
 import LeaveWorkspaceButton from './leave-workspace-button';
+import EditWorkspaceName from './edit-workspace-name';
+import EditDisplayName from './edit-display-name';
 import Link from 'next/link';
 
 interface Props {
@@ -62,33 +64,29 @@ export default async function SettingsPage({ params }: Props) {
 
         {/* 동산 이름 */}
         <div style={{ background: T.sand, borderRadius: 20, padding: '14px 16px', marginBottom: 10 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: T.wood600, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 4 }}>동산 이름</div>
-          <div style={{ fontSize: 16, fontWeight: 700, color: T.ink }}>{workspace.name}</div>
+          {myMembership?.role === 'owner'
+            ? <EditWorkspaceName workspaceId={workspaceId} initialName={workspace.name} />
+            : (
+              <>
+                <div style={{ fontSize: 11, fontWeight: 700, color: T.wood600, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 4 }}>동산 이름</div>
+                <div style={{ fontSize: 16, fontWeight: 700, color: T.ink }}>{workspace.name}</div>
+              </>
+            )
+          }
         </div>
 
         {/* 내 프로필 */}
         {myMembership && (
           <div style={{ background: T.sand, borderRadius: 20, padding: '14px 16px', marginBottom: 24 }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: T.wood600, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 10 }}>내 프로필</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{
-                width: 36, height: 36, borderRadius: 9999,
-                background: myMembership.color + '33',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 20,
-              }}>
-                {myMembership.avatar}
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: T.ink }}>{myMembership.display_name}</div>
-              </div>
-              {myMembership.role === 'owner' && (
-                <div style={{
-                  padding: '3px 10px', borderRadius: 9999,
-                  background: T.bisque, fontSize: 11, fontWeight: 700, color: T.wood600,
-                }}>관리자</div>
-              )}
-            </div>
+            <EditDisplayName
+              workspaceId={workspaceId}
+              userId={user.id}
+              initialName={myMembership.display_name}
+              avatar={myMembership.avatar}
+              color={myMembership.color}
+              isOwner={myMembership.role === 'owner'}
+            />
           </div>
         )}
 
