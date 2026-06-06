@@ -56,6 +56,7 @@ export default async function WorkspacesPage() {
         gardens={[]}
         userName={myName}
         seasonLabel={getSeasonLabel()}
+        userId={user.id}
       />
     );
   }
@@ -118,6 +119,7 @@ export default async function WorkspacesPage() {
       gardens={gardens}
       userName={myName}
       seasonLabel={getSeasonLabel()}
+      userId={user.id}
     />
   );
 }

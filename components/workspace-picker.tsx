@@ -197,11 +197,12 @@ export interface WorkspacePickerProps {
   onOpen?: (id: string) => void;
   onNew?: () => void;
   onSettings?: () => void;
+  onJoinCode?: () => void;
 }
 
 export function WorkspacePicker({
   userName = '', seasonLabel, greetingSub,
-  gardens, maxGardens = 3, onOpen, onNew, onSettings,
+  gardens, maxGardens = 3, onOpen, onNew, onSettings, onJoinCode,
 }: WorkspacePickerProps) {
   const canAdd = gardens.length < maxGardens;
   const sub = greetingSub ?? (gardens.length
@@ -256,6 +257,18 @@ export function WorkspacePicker({
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             {gardens.map((g) => <GardenCard key={g.id} g={g} onOpen={onOpen} />)}
             {canAdd && <NewGardenCard onNew={onNew} />}
+            {onJoinCode && (
+              <button onClick={onJoinCode} style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                fontSize: 13.5, fontWeight: 700, color: T.inkMute,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                gap: 6, padding: '6px 0', width: '100%',
+                textDecoration: 'underline', textUnderlineOffset: 3,
+                textDecorationColor: T.taupe,
+              }}>
+                코드로 참가하기
+              </button>
+            )}
           </div>
         </div>
       </div>
