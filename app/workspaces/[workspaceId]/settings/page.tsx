@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import InviteSection from './invite-section';
 import PushNotifManager from '@/components/push-notif-manager';
 import DeleteWorkspaceButton from './delete-workspace-button';
+import LeaveWorkspaceButton from './leave-workspace-button';
 import Link from 'next/link';
 
 interface Props {
@@ -70,10 +71,13 @@ export default async function SettingsPage({ params }: Props) {
 
         <InviteSection workspaceId={workspaceId} userId={user.id} />
 
-        {myMembership?.role === 'owner' && (
+        {myMembership && (
           <div style={{ marginTop: 32 }}>
             <p style={{ fontSize: 11, fontWeight: 800, color: '#9A7553', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 10 }}>위험 구역</p>
-            <DeleteWorkspaceButton workspaceId={workspaceId} workspaceName={workspace.name} />
+            {myMembership.role === 'owner'
+              ? <DeleteWorkspaceButton workspaceId={workspaceId} workspaceName={workspace.name} />
+              : <LeaveWorkspaceButton workspaceId={workspaceId} workspaceName={workspace.name} userId={user.id} />
+            }
           </div>
         )}
 
