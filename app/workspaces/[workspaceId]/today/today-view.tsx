@@ -410,10 +410,10 @@ export default function TodayView({ workspaceId, userId, initialItems, members, 
 
   const [monthlyPotState, setMonthlyPotState] = useState<MonthlyPot | null>(monthlyPot);
   const [treeType, setTreeType] = useState(initialTreeType);
-  const [bannerDismissed, setBannerDismissed] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return !!localStorage.getItem(`invite_banner_dismissed_${workspaceId}`);
-  });
+  const [bannerDismissed, setBannerDismissed] = useState(false);
+  useEffect(() => {
+    if (localStorage.getItem(`invite_banner_dismissed_${workspaceId}`)) setBannerDismissed(true);
+  }, [workspaceId]);
 
   const needsTreePick = (treeSelectedYear ?? 0) < currentYear;
   const [showTreePicker, setShowTreePicker]   = useState(needsTreePick);
