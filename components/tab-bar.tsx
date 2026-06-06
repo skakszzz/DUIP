@@ -1,3 +1,5 @@
+// components/tab-bar.tsx
+// 하단 탭 — 홈 / 메모 / 캘린더 / 동산 (4개).
 'use client';
 
 import Link from 'next/link';
@@ -14,6 +16,18 @@ function HomeIcon({ active }: { active: boolean }) {
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
       <path d="M4 11 12 4l8 7v8a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 19Z" fill={c} fillOpacity={active ? 0.14 : 0}/>
       <path d="M10 20v-5h4v5"/>
+    </svg>
+  );
+}
+
+function MemoIcon({ active }: { active: boolean }) {
+  const c = active ? '#5C3A1F' : '#B09779';
+  const sw = active ? 2.2 : 1.8;
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M5.5 3.5h8L19 9v11a1.5 1.5 0 0 1-1.5 1.5h-12A1.5 1.5 0 0 1 4 20V5A1.5 1.5 0 0 1 5.5 3.5Z" fill={c} fillOpacity={active ? 0.14 : 0}/>
+      <path d="M13 3.5V8.5a.7.7 0 0 0 .7.7H19"/>
+      <path d="M8 13h6M8 16.5h4"/>
     </svg>
   );
 }
@@ -44,12 +58,14 @@ function GardenIcon({ active }: { active: boolean }) {
 export default function TabBar({ workspaceId }: Props) {
   const pathname = usePathname();
 
+  const isMemo = pathname.includes('/memos');
   const isCalendar = pathname.includes('/calendar');
   const isGarden = pathname.includes('/garden');
-  const isHome = !isCalendar && !isGarden;
+  const isHome = !isMemo && !isCalendar && !isGarden;
 
   const tabs = [
     { id: 'home',     label: '홈',    href: `/workspaces/${workspaceId}/today`,    Icon: HomeIcon,     active: isHome },
+    { id: 'memo',     label: '메모',   href: `/workspaces/${workspaceId}/memos`,    Icon: MemoIcon,     active: isMemo },
     { id: 'calendar', label: '캘린더', href: `/workspaces/${workspaceId}/calendar`, Icon: CalendarIcon, active: isCalendar },
     { id: 'garden',   label: '동산',   href: `/workspaces/${workspaceId}/garden`,   Icon: GardenIcon,   active: isGarden },
   ];
