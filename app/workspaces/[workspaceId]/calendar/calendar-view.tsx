@@ -85,10 +85,13 @@ export default function CalendarView({ workspaceId, userId, initialItems, member
     itemsByDate[d].push(item);
   }
 
-  // 여러 날 리본 아이템
+  // 여러 날 리본 아이템 — 이 달과 겹치는 이벤트 전체 포함
   const monthKey = `${year}-${String(month).padStart(2, '0')}`;
+  const monthStart = `${monthKey}-01`;
+  const monthEnd   = `${monthKey}-${String(daysInMonth).padStart(2, '0')}`;
   const ribbonItems = items.filter(
-    i => i.event_end_date && i.event_end_date > i.event_date && i.event_date.startsWith(monthKey)
+    i => i.event_end_date && i.event_end_date > i.event_date
+      && i.event_date <= monthEnd && i.event_end_date >= monthStart
   );
 
   // 주(week) 배열 빌드: 각 week는 7개 (null = 빈 칸)
@@ -106,15 +109,19 @@ export default function CalendarView({ workspaceId, userId, initialItems, member
   // 이 주에서 리본이 걸치는 열 계산
   function layoutWeekRibbons(week: Array<number | null>) {
     return ribbonItems.flatMap(item => {
-      const startD = parseInt(item.event_date.slice(8, 10));
-      const endD   = parseInt(item.event_end_date!.slice(8, 10));
+      // 이 달 이전에 시작했으면 1일부터, 이 달 이후에 끝나면 말일까지 클램핑
+      const startsThisMonth = item.event_date.slice(0, 7) === monthKey;
+      const endsThisMonth   = item.event_end_date!.slice(0, 7) === monthKey;
+      const startD = startsThisMonth ? parseInt(item.event_date.slice(8, 10)) : 1;
+      const endD   = endsThisMonth   ? parseInt(item.event_end_date!.slice(8, 10)) : daysInMonth;
+
       let fromCol = -1, toCol = -1, startsHere = false, endsHere = false;
       week.forEach((day, ci) => {
         if (day === null) return;
         if (day >= startD && day <= endD) {
-          if (fromCol === -1) { fromCol = ci; if (day === startD) startsHere = true; }
+          if (fromCol === -1) { fromCol = ci; if (startsThisMonth && day === startD) startsHere = true; }
           toCol = ci;
-          if (day === endD) endsHere = true;
+          if (endsThisMonth && day === endD) endsHere = true;
         }
       });
       if (fromCol === -1) return [];
@@ -215,7 +222,6 @@ export default function CalendarView({ workspaceId, userId, initialItems, member
                   );
                   const isSelected = selectedDay === day;
                   const today = isToday(day);
-                  const colIdx = firstDay === 0 ? ci : (firstDay + day - 1) % 7;
                   const isSun = (firstDay + day - 1) % 7 === 0;
                   const isSat = (firstDay + day - 1) % 7 === 6;
                   return (
