@@ -191,9 +191,19 @@ export default function GardenView({ workspaceId, year, pots: initialPots, month
     setSaving(true);
     const supabase = createClient();
     await supabase.from('monthly_pots').update({ plant_id: plantId, soil_type: soilId, selected_at: new Date().toISOString() }).eq('id', selectedPot.id);
+    setPots(prev => prev.map(p => p.id === selectedPot.id ? { ...p, plant_id: plantId, soil_type: soilId } : p));
     setSaving(false);
     setShowPicker(false);
     router.refresh();
+  }
+
+  async function handleSoilChange(soilId: SoilType) {
+    if (!pickerMonth) return;
+    const pot = pots.find(p => p.month === pickerMonth);
+    if (!pot) return;
+    const supabase = createClient();
+    await supabase.from('monthly_pots').update({ soil_type: soilId }).eq('id', pot.id);
+    setPots(prev => prev.map(p => p.month === pickerMonth ? { ...p, soil_type: soilId } : p));
   }
 
   const filteredPlants = categoryFilter === 'all' ? plants : plants.filter((p) => p.category === categoryFilter);
@@ -468,7 +478,7 @@ export default function GardenView({ workspaceId, year, pots: initialPots, month
           saving={saving}
           onSelect={selectPlant}
           onClose={() => { setShowPicker(false); setPickerMonth(null); }}
-          router={router}
+          onSoilChange={handleSoilChange}
         />
       )}
     </div>
@@ -699,7 +709,7 @@ function TreeDetailSheet({ year, treeType, treeEmoji, treeName, totalCompleted, 
 }
 
 // ── 식물 선택 시트 ────────────────────────────────────────────────
-function PlantPickerSheet({ month, pot, filteredPlants, categoryFilter, onCategoryChange, categoryLabels, saving, onSelect, onClose, router }: {
+function PlantPickerSheet({ month, pot, filteredPlants, categoryFilter, onCategoryChange, categoryLabels, saving, onSelect, onClose, onSoilChange }: {
   month: number;
   pot: MonthlyPot;
   filteredPlants: typeof plants;
@@ -709,7 +719,7 @@ function PlantPickerSheet({ month, pot, filteredPlants, categoryFilter, onCatego
   saving: boolean;
   onSelect: (plantId: string, soilId: SoilType) => void;
   onClose: () => void;
-  router: ReturnType<typeof useRouter>;
+  onSoilChange: (soilId: SoilType) => void;
 }) {
   return (
     <div className="fixed inset-0 z-[60] flex items-end" style={{ background: 'rgba(42,27,14,0.4)' }} onClick={onClose}>
@@ -733,11 +743,7 @@ function PlantPickerSheet({ month, pot, filteredPlants, categoryFilter, onCatego
             {soilVariants.map((soil) => (
               <button
                 key={soil.id}
-                onClick={async () => {
-                  const supabase = createClient();
-                  await supabase.from('monthly_pots').update({ soil_type: soil.id }).eq('id', pot.id);
-                  router.refresh();
-                }}
+                onClick={() => onSoilChange(soil.id as SoilType)}
                 style={{
                   flex: 1, height: 34, borderRadius: 10, border: 'none',
                   background: pot.soil_type === soil.id ? '#5C3A1F' : '#F4EBD9',
