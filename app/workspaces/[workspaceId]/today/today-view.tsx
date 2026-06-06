@@ -410,6 +410,10 @@ export default function TodayView({ workspaceId, userId, initialItems, members, 
 
   const [monthlyPotState, setMonthlyPotState] = useState<MonthlyPot | null>(monthlyPot);
   const [treeType, setTreeType] = useState(initialTreeType);
+  const [bannerDismissed, setBannerDismissed] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return !!localStorage.getItem(`invite_banner_dismissed_${workspaceId}`);
+  });
 
   const needsTreePick = (treeSelectedYear ?? 0) < currentYear;
   const [showTreePicker, setShowTreePicker]   = useState(needsTreePick);
@@ -577,7 +581,7 @@ export default function TodayView({ workspaceId, userId, initialItems, members, 
       <div className="max-w-md mx-auto" style={{ paddingBottom: 100 }}>
         {/* ── 헤더 ── */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '52px 20px 12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <Link href="/workspaces" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
             <div style={{ fontSize: 26, lineHeight: 1 }}>🌿</div>
             <div>
               <div style={{ fontSize: 14, fontWeight: 800, color: '#2A1B0E', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
@@ -587,7 +591,7 @@ export default function TodayView({ workspaceId, userId, initialItems, members, 
                 {currentUser.avatar} {currentUser.displayName}
               </div>
             </div>
-          </div>
+          </Link>
           <Link
             href={`/workspaces/${workspaceId}/settings`}
             style={{
@@ -606,30 +610,48 @@ export default function TodayView({ workspaceId, userId, initialItems, members, 
 
         <div style={{ padding: '0 16px' }}>
           {/* ── 파트너 없을 때 초대 배너 ── */}
-          {members.length === 1 && (
-            <a
-              href={`/workspaces/${workspaceId}/settings`}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 10,
-                background: 'linear-gradient(135deg, rgba(154,124,201,0.15), rgba(199,124,106,0.12))',
-                borderRadius: 18, padding: '12px 14px', marginBottom: 12,
-                textDecoration: 'none',
-                boxShadow: '0 1px 4px rgba(74,46,22,0.06)',
-              }}
-            >
-              <div style={{ fontSize: 26, lineHeight: 1 }}>💌</div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 13, fontWeight: 800, color: '#2A1B0E', letterSpacing: '-0.01em' }}>
-                  파트너를 초대해보세요
+          {members.length === 1 && !bannerDismissed && (
+            <div style={{ position: 'relative', marginBottom: 12 }}>
+              <a
+                href={`/workspaces/${workspaceId}/settings`}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  background: 'linear-gradient(135deg, rgba(154,124,201,0.15), rgba(199,124,106,0.12))',
+                  borderRadius: 18, padding: '12px 14px',
+                  textDecoration: 'none',
+                  boxShadow: '0 1px 4px rgba(74,46,22,0.06)',
+                }}
+              >
+                <div style={{ fontSize: 26, lineHeight: 1 }}>💌</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: '#2A1B0E', letterSpacing: '-0.01em' }}>
+                    파트너를 초대해보세요
+                  </div>
+                  <div style={{ fontSize: 11.5, color: '#8A7359', marginTop: 2 }}>
+                    함께하면 동산이 더 풍성해져요
+                  </div>
                 </div>
-                <div style={{ fontSize: 11.5, color: '#8A7359', marginTop: 2 }}>
-                  함께하면 동산이 더 풍성해져요
-                </div>
-              </div>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9A7553" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 18l6-6-6-6"/>
-              </svg>
-            </a>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9A7553" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 18l6-6-6-6"/>
+                </svg>
+              </a>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  localStorage.setItem(`invite_banner_dismissed_${workspaceId}`, '1');
+                  setBannerDismissed(true);
+                }}
+                style={{
+                  position: 'absolute', top: 8, right: 10,
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  padding: 4, lineHeight: 1,
+                  color: '#B09779', fontSize: 16,
+                }}
+                aria-label="닫기"
+              >
+                ✕
+              </button>
+            </div>
           )}
 
           {/* ── 이번 달 식물 카드 ── */}
