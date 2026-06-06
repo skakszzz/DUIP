@@ -611,7 +611,7 @@ export default function TodayView({ workspaceId, userId, initialItems, members, 
                 style={{
                   display: 'flex', alignItems: 'center', gap: 10,
                   background: 'linear-gradient(135deg, rgba(154,124,201,0.15), rgba(199,124,106,0.12))',
-                  borderRadius: 18, padding: '12px 40px 12px 14px',
+                  borderRadius: 18, padding: '12px 48px 12px 14px',
                   textDecoration: 'none',
                   boxShadow: '0 1px 4px rgba(74,46,22,0.06)',
                 }}
@@ -643,7 +643,9 @@ export default function TodayView({ workspaceId, userId, initialItems, members, 
                 }}
                 aria-label="닫기"
               >
-                ✕
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 6 6 18M6 6l12 12"/>
+                </svg>
               </button>
             </div>
           )}
@@ -758,7 +760,7 @@ export default function TodayView({ workspaceId, userId, initialItems, members, 
         <button
           onClick={() => setShowForm(true)}
           style={{
-            position: 'fixed', right: 18, bottom: 96, zIndex: 40,
+            position: 'fixed', right: 'max(18px, calc(50% - 206px))', bottom: 96, zIndex: 40,
             width: 56, height: 56, borderRadius: 9999,
             background: '#5C3A1F', color: '#FBF6EE', border: 'none',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
