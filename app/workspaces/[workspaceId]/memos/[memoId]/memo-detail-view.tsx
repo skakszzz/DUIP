@@ -124,7 +124,7 @@ export default function MemoDetailView({ workspaceId, userId, members, initialMe
       </div>
 
       {/* 블록 추가 툴바 */}
-      <div style={{ position: 'fixed', left: 12, right: 12, bottom: 'calc(20px + env(safe-area-inset-bottom,0px))', maxWidth: 424, margin: '0 auto', zIndex: 20, background: T.wood800, borderRadius: 9999, boxShadow: '0 14px 30px rgba(74,46,22,0.3)', padding: '8px 10px', display: 'flex', gap: 6 }}>
+      <div style={{ position: 'fixed', left: 12, right: 12, bottom: 'calc(72px + env(safe-area-inset-bottom,0px))', maxWidth: 424, margin: '0 auto', zIndex: 60, background: T.wood800, borderRadius: 9999, boxShadow: '0 14px 30px rgba(74,46,22,0.3)', padding: '8px 10px', display: 'flex', gap: 6 }}>
         {([['text', '텍스트', 'M8 7h8M8 12h8M8 17h5'], ['check', '체크', 'M4 12.5 7 15.5 12 9'], ['draw', '그림', 'M4 20l4-1 11-11-3-3L5 16l-1 4Z']] as [MemoBlock['kind'], string, string][]).map(([k, label, d]) => (
           <button key={k} onClick={() => addBlock(k)} style={{ flex: 1, height: 40, borderRadius: 9999, border: 'none', background: 'transparent', color: T.cream, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={T.cream} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d={d} /></svg>{label}
