@@ -115,7 +115,7 @@ export default function MemosView({ workspaceId, userId, workspaceName, members,
                   {pv.type === 'draw' ? (
                     <div style={{ flex: 1, display: 'grid', placeItems: 'center', background: tint.bg }}>
                       {pv.draw.strokes?.length
-                        ? <StrokesSvg strokes={pv.draw.strokes} w={150} h={104} />
+                        ? <StrokesSvg strokes={pv.draw.strokes} w={150} h={200} />
                         : <Doodle kind="plants" size={104} />}
                     </div>
                   ) : pv.type === 'check' ? (

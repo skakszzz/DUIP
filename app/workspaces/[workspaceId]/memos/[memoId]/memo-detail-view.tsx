@@ -30,7 +30,21 @@ export default function MemoDetailView({ workspaceId, userId, members, initialMe
   const [blocks, setBlocks] = useState<MemoBlock[]>(initialMemo.blocks ?? []);
   const [drawingId, setDrawingId] = useState<string | null>(null); // 편집 중인 그림 블록
   const [menuOpen, setMenuOpen] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [saving, setSaving] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    function handleOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+        setDeleteConfirm(false);
+      }
+    }
+    document.addEventListener('mousedown', handleOutside);
+    return () => document.removeEventListener('mousedown', handleOutside);
+  }, [menuOpen]);
   const tmeta = MEMO_TINTS[tint] ?? MEMO_TINTS.paper;
   const first = useRef(true);
 
@@ -84,12 +98,21 @@ export default function MemoDetailView({ workspaceId, userId, members, initialMe
               return <button key={k} onClick={() => setTint(k)} style={{ width: on ? 22 : 18, height: on ? 22 : 18, borderRadius: 9999, background: MEMO_TINTS[k].bg, border: `2px solid ${on ? T.wood800 : MEMO_TINTS[k].edge}`, cursor: 'pointer', padding: 0 }} aria-label={k} />;
             })}
           </div>
-          <div style={{ position: 'relative' }}>
-            <button onClick={() => setMenuOpen((v) => !v)} style={{ width: 36, height: 36, borderRadius: 9999, background: T.paper, boxShadow: T.sh1, border: 'none', display: 'grid', placeItems: 'center', cursor: 'pointer' }} aria-label="더보기">
+          <div style={{ position: 'relative' }} ref={menuRef}>
+            <button onClick={() => { setMenuOpen((v) => !v); setDeleteConfirm(false); }} style={{ width: 36, height: 36, borderRadius: 9999, background: T.paper, boxShadow: T.sh1, border: 'none', display: 'grid', placeItems: 'center', cursor: 'pointer' }} aria-label="더보기">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="6" cy="12" r="1.4" fill={T.wood700} /><circle cx="12" cy="12" r="1.4" fill={T.wood700} /><circle cx="18" cy="12" r="1.4" fill={T.wood700} /></svg>
             </button>
             {menuOpen && (
-              <button onClick={deleteMemo} style={{ position: 'absolute', right: 0, top: 42, zIndex: 30, height: 40, padding: '0 16px', borderRadius: 12, background: T.paper, boxShadow: '0 8px 24px rgba(74,46,22,0.16)', border: 'none', cursor: 'pointer', fontSize: 13.5, fontWeight: 700, color: '#B5483A', whiteSpace: 'nowrap' }}>메모 삭제</button>
+              <div style={{ position: 'absolute', right: 0, top: 42, zIndex: 30, borderRadius: 14, background: T.paper, boxShadow: '0 8px 24px rgba(74,46,22,0.16)', overflow: 'hidden', minWidth: 130 }}>
+                {!deleteConfirm ? (
+                  <button onClick={() => setDeleteConfirm(true)} style={{ display: 'block', width: '100%', height: 44, padding: '0 16px', border: 'none', cursor: 'pointer', background: 'transparent', fontSize: 13.5, fontWeight: 700, color: '#B5483A', textAlign: 'left' }}>메모 삭제</button>
+                ) : (
+                  <>
+                    <div style={{ padding: '10px 14px 4px', fontSize: 11.5, color: T.inkMute, fontWeight: 600 }}>정말 삭제할까요?</div>
+                    <button onClick={deleteMemo} style={{ display: 'block', width: '100%', height: 40, padding: '0 16px', border: 'none', cursor: 'pointer', background: '#B5483A', fontSize: 13.5, fontWeight: 800, color: '#fff', textAlign: 'left' }}>네, 삭제</button>
+                  </>
+                )}
+              </div>
             )}
           </div>
         </div>
@@ -183,7 +206,7 @@ function BlockEditor({ block, members, userId, tint, onChange, onRemove, onEditD
       {block.kind === 'draw' && (
         <button onClick={onEditDraw} style={{ width: '100%', background: '#FFFDF8', borderRadius: 14, border: `1px solid ${T.bisque}`, padding: 10, cursor: 'pointer', display: 'grid', placeItems: 'center' }}>
           {block.strokes.length
-            ? <StrokesSvg strokes={block.strokes} w={300} h={200} />
+            ? <StrokesSvg strokes={block.strokes} w={300} h={400} />
             : <span style={{ fontSize: 13, color: T.inkMute, fontWeight: 700, padding: '24px 0' }}>＋ 여기를 눌러 그리기</span>}
         </button>
       )}
