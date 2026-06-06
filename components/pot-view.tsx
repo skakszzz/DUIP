@@ -1,9 +1,8 @@
 'use client';
 
-import { useState } from 'react';
 import Image from 'next/image';
 import type { SoilType } from '@/lib/types';
-import { getPlantEmoji } from '@/lib/data/plant-emojis';
+import { PlantArt } from '@/components/plant-art';
 
 // ─────────────────────────────────────────────────────────────────
 // 화분/식물 레이어 정렬 상수
@@ -25,15 +24,6 @@ const SOIL_Y          = 0.425;
 const PLANT_ANCHOR_Y  = 0.655;
 const PLANT_OFFSET_Y  = SOIL_Y - PLANT_ANCHOR_Y;  // -0.230
 
-// 이모지 폴백 성장 단계별 크기 비율 (size 기준)
-const STAGE_SCALE: Record<number, number> = {
-  1: 0,
-  2: 0.20,
-  3: 0.27,
-  4: 0.33,
-  5: 0.40,
-};
-
 interface PotViewProps {
   soilId: SoilType;
   plantId: string | null;
@@ -42,13 +32,7 @@ interface PotViewProps {
 }
 
 export function PotView({ soilId, plantId, stage, size = 200 }: PotViewProps) {
-  const [plantError, setPlantError] = useState(false);
-
   const soilSrc = `/pots/soil-${soilId}.png`;
-  const plantSrc = stage >= 2 && plantId && !plantError
-    ? `/plants/${plantId}/stage${stage}.png`
-    : null;
-  const plantEmoji = getPlantEmoji(plantId);
 
   // 식물 이미지 수직 오프셋 (px)
   const offsetPx = PLANT_OFFSET_Y * size;
@@ -67,42 +51,10 @@ export function PotView({ soilId, plantId, stage, size = 200 }: PotViewProps) {
         style={{ objectFit: 'fill' }}
       />
 
-      {/* 상단 레이어: 식물 PNG — SOIL_Y 기준으로 밑동 앵커링 */}
-      {plantSrc && (
+      {/* 상단 레이어: 식물 SVG — SOIL_Y 기준으로 밑동 앵커링 */}
+      {stage >= 2 && plantId && (
         <div style={{ position: 'absolute', top: offsetPx, left: 0, width: size, height: size }}>
-          <Image
-            src={plantSrc}
-            alt=""
-            fill
-            sizes={`${size}px`}
-            draggable={false}
-            onError={() => setPlantError(true)}
-            style={{ objectFit: 'fill' }}
-          />
-        </div>
-      )}
-
-      {/* 폴백: 이모지 — 흙 표면(SOIL_Y) 위에 올라오도록 paddingBottom 계산 */}
-      {stage >= 2 && !plantSrc && plantEmoji && (
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            display: 'flex',
-            alignItems: 'flex-end',
-            justifyContent: 'center',
-            paddingBottom: (1 - SOIL_Y) * size,
-          }}
-        >
-          <span
-            style={{
-              fontSize: size * STAGE_SCALE[stage],
-              lineHeight: 1,
-              filter: stage === 5 ? 'drop-shadow(0 0 4px rgba(255,180,0,0.5))' : undefined,
-            }}
-          >
-            {plantEmoji}
-          </span>
+          <PlantArt id={plantId} stage={stage} size={size} showPot={false} />
         </div>
       )}
     </div>

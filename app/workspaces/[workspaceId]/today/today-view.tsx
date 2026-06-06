@@ -505,22 +505,16 @@ export default function TodayView({ workspaceId, userId, initialItems, members, 
   const month = getCurrentMonth();
   const todayLabel = getTodayLabel();
 
-  // 마운트 시 오늘 이미 팝업을 봤는지 복원 — 껏다켜도 다시 안 뜨게
-  useEffect(() => {
-    if (localStorage.getItem(bloomStorageKey) === '1') {
-      bloomShownRef.current = true;
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
   // 100% 완료 시 블룸 오버레이 — 오늘 첫 완료 1회만
+  // localStorage를 직접 읽어 effect 실행 순서 의존성 제거
   useEffect(() => {
-    if (pct === 1 && total > 0 && !bloomShownRef.current) {
-      bloomShownRef.current = true;
-      localStorage.setItem(bloomStorageKey, '1');
-      const timer = setTimeout(() => setShowBloom(true), 400);
-      return () => clearTimeout(timer);
-    }
-    // pct < 1 이어도 이미 본 팝업은 다시 리셋하지 않음
+    if (pct !== 1 || total <= 0) return;
+    if (localStorage.getItem(bloomStorageKey) === '1') return;
+    if (bloomShownRef.current) return;
+    bloomShownRef.current = true;
+    localStorage.setItem(bloomStorageKey, '1');
+    const timer = setTimeout(() => setShowBloom(true), 400);
+    return () => clearTimeout(timer);
   }, [pct, total]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function toggleComplete(item: Item) {
@@ -927,7 +921,6 @@ function TodayAddSheet({
           background: '#FBF6EE', borderRadius: '28px 28px 0 0',
           padding: '0 16px 0',
           maxHeight: '92svh', overflowY: 'auto',
-          paddingBottom: 'calc(16px + env(safe-area-inset-bottom, 0px))',
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -989,7 +982,7 @@ function TodayAddSheet({
               style={{
                 display: 'block', width: '100%',
                 background: 'none', border: 'none', outline: 'none', padding: 0,
-                fontSize: 15, fontWeight: 700, color: '#2A1B0E',
+                fontSize: 16, fontWeight: 700, color: '#2A1B0E',
                 letterSpacing: '-0.01em',
               }}
             />
@@ -1005,7 +998,7 @@ function TodayAddSheet({
               style={{
                 display: 'block', width: '100%',
                 background: 'none', border: 'none', outline: 'none', padding: 0,
-                fontSize: 14, color: '#5C3A1F',
+                fontSize: 16, color: '#5C3A1F',
                 letterSpacing: '-0.01em',
               }}
             />
@@ -1086,20 +1079,28 @@ function TodayAddSheet({
             )}
           </div>
 
-          {/* 제출 */}
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              marginTop: 4, height: 52, borderRadius: 9999, border: 'none',
-              background: '#5C3A1F', color: '#FBF6EE',
-              fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em',
-              cursor: 'pointer', opacity: loading ? 0.55 : 1,
-              boxShadow: '0 8px 24px rgba(74,46,22,0.22)',
-            }}
-          >
-            {loading ? '추가 중...' : '추가하기'}
-          </button>
+          {/* 제출 — sticky로 시트 하단에 항상 노출 */}
+          <div style={{
+            position: 'sticky', bottom: 0,
+            background: '#FBF6EE',
+            paddingTop: 8,
+            paddingBottom: 'calc(16px + env(safe-area-inset-bottom, 0px))',
+          }}>
+            <button
+              type="submit"
+              disabled={loading}
+              style={{
+                display: 'block', width: '100%',
+                height: 52, borderRadius: 9999, border: 'none',
+                background: '#5C3A1F', color: '#FBF6EE',
+                fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em',
+                cursor: 'pointer', opacity: loading ? 0.55 : 1,
+                boxShadow: '0 8px 24px rgba(74,46,22,0.22)',
+              }}
+            >
+              {loading ? '추가 중...' : '추가하기'}
+            </button>
+          </div>
         </form>
       </div>
     </div>

@@ -499,7 +499,7 @@ function CalAddSheet({ workspaceId, userId, members, presetDate, onClose, onAdde
             <input
               required value={title} onChange={(e) => setTitle(e.target.value)}
               placeholder="무엇을 함께 할까요?" autoFocus
-              style={{ display: 'block', width: '100%', background: 'none', border: 'none', outline: 'none', padding: 0, fontSize: 15, fontWeight: 700, color: '#2A1B0E', letterSpacing: '-0.01em' }}
+              style={{ display: 'block', width: '100%', background: 'none', border: 'none', outline: 'none', padding: 0, fontSize: 16, fontWeight: 700, color: '#2A1B0E', letterSpacing: '-0.01em' }}
             />
           </div>
 
@@ -523,7 +523,7 @@ function CalAddSheet({ workspaceId, userId, members, presetDate, onClose, onAdde
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <input
                 type="date" value={eventDate} onChange={(e) => setEventDate(e.target.value)}
-                style={{ flex: 1, background: 'none', border: 'none', outline: 'none', padding: 0, fontSize: 14, fontWeight: 700, color: '#2A1B0E', cursor: 'pointer' }}
+                style={{ flex: 1, background: 'none', border: 'none', outline: 'none', padding: 0, fontSize: 16, fontWeight: 700, color: '#2A1B0E', cursor: 'pointer' }}
               />
               {multiDay && (
                 <>
@@ -531,7 +531,7 @@ function CalAddSheet({ workspaceId, userId, members, presetDate, onClose, onAdde
                   <input
                     type="date" value={eventEndDate} min={eventDate}
                     onChange={(e) => setEventEndDate(e.target.value)}
-                    style={{ flex: 1, background: 'none', border: 'none', outline: 'none', padding: 0, fontSize: 14, fontWeight: 700, color: '#2A1B0E', cursor: 'pointer' }}
+                    style={{ flex: 1, background: 'none', border: 'none', outline: 'none', padding: 0, fontSize: 16, fontWeight: 700, color: '#2A1B0E', cursor: 'pointer' }}
                   />
                 </>
               )}
@@ -544,7 +544,7 @@ function CalAddSheet({ workspaceId, userId, members, presetDate, onClose, onAdde
             <input
               value={description} onChange={(e) => setDescription(e.target.value)}
               placeholder="메모를 적어볼까요"
-              style={{ display: 'block', width: '100%', background: 'none', border: 'none', outline: 'none', padding: 0, fontSize: 14, color: '#5C3A1F', letterSpacing: '-0.01em' }}
+              style={{ display: 'block', width: '100%', background: 'none', border: 'none', outline: 'none', padding: 0, fontSize: 16, color: '#5C3A1F', letterSpacing: '-0.01em' }}
             />
           </div>
 

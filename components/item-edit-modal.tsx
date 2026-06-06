@@ -166,7 +166,7 @@ export default function ItemEditModal({ item, members, onClose, onUpdated, onDel
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="제목"
-            className="rounded-xl border border-[#E8D5B8] bg-white px-4 py-3 text-[#5C3A1F] placeholder:text-[#C8B89A] focus:outline-none focus:ring-2 focus:ring-[#B86F4B] text-sm"
+            className="rounded-xl border border-[#E8D5B8] bg-white px-4 py-3 text-[#5C3A1F] placeholder:text-[#C8B89A] focus:outline-none focus:ring-2 focus:ring-[#B86F4B] text-base"
           />
 
           {/* 메모 */}
@@ -174,7 +174,7 @@ export default function ItemEditModal({ item, members, onClose, onUpdated, onDel
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="메모 (선택)"
-            className="rounded-xl border border-[#E8D5B8] bg-white px-4 py-3 text-[#5C3A1F] placeholder:text-[#C8B89A] focus:outline-none focus:ring-2 focus:ring-[#B86F4B] text-sm"
+            className="rounded-xl border border-[#E8D5B8] bg-white px-4 py-3 text-[#5C3A1F] placeholder:text-[#C8B89A] focus:outline-none focus:ring-2 focus:ring-[#B86F4B] text-base"
           />
 
           {/* 기간 + 담당자 */}
