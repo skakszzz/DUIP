@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import InviteSection from './invite-section';
 import PushNotifManager from '@/components/push-notif-manager';
+import NotificationHourPicker from './notification-hour-picker';
 import DeleteWorkspaceButton from './delete-workspace-button';
 import LeaveWorkspaceButton from './leave-workspace-button';
 import EditWorkspaceName from './edit-workspace-name';
@@ -28,7 +29,7 @@ export default async function SettingsPage({ params }: Props) {
 
   const { data: workspace } = await supabase
     .from('workspaces')
-    .select('id, name, tree_type')
+    .select('id, name, tree_type, notification_hour')
     .eq('id', workspaceId)
     .single();
   if (!workspace) redirect('/workspaces');
@@ -94,6 +95,10 @@ export default async function SettingsPage({ params }: Props) {
         <div style={{ marginBottom: 24 }}>
           <div style={{ fontSize: 11, fontWeight: 800, color: T.wood600, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 10 }}>알림</div>
           <PushNotifManager workspaceId={workspaceId} />
+          <NotificationHourPicker
+            workspaceId={workspaceId}
+            initialHour={workspace?.notification_hour ?? 9}
+          />
         </div>
 
         {/* 초대 */}
