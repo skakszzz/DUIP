@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { useDragSheet } from '@/lib/use-drag-sheet';
 import { EmptyCalendar } from '@/components/empty-states';
 import { createClient } from '@/lib/supabase/client';
@@ -64,6 +65,7 @@ function TypeIcon({ type, size = 14, color }: { type: ItemType; size?: number; c
 }
 
 export default function CalendarView({ workspaceId, userId, initialItems, members }: Props) {
+  const router = useRouter();
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1); // 1-based
@@ -71,6 +73,52 @@ export default function CalendarView({ workspaceId, userId, initialItems, member
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [showAddSheet, setShowAddSheet] = useState(false);
   const [addDateKey, setAddDateKey] = useState('');
+
+  // 파트너 변경 실시간 동기화
+  useEffect(() => {
+    const supabase = createClient();
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    function handlePayload(payload: { eventType: string; new: any; old: any }) {
+      if (payload.eventType === 'INSERT') {
+        const n = payload.new as CalItem;
+        if (!n.event_date) return;
+        setItems((prev) => prev.some((i) => i.id === n.id) ? prev : [...prev, n]);
+      } else if (payload.eventType === 'UPDATE') {
+        const n = payload.new as CalItem;
+        if (!n.event_date) {
+          setItems((prev) => prev.filter((i) => i.id !== n.id));
+        } else {
+          setItems((prev) => prev.map((i) => i.id === n.id ? n : i));
+        }
+      } else if (payload.eventType === 'DELETE') {
+        setItems((prev) => prev.filter((i) => i.id !== payload.old.id));
+      }
+    }
+
+    function subscribe() {
+      channel = supabase
+        .channel(`calendar:${workspaceId}`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'items', filter: `workspace_id=eq.${workspaceId}` }, handlePayload)
+        .subscribe();
+    }
+
+    function unsubscribe() {
+      if (channel) { supabase.removeChannel(channel); channel = null; }
+    }
+
+    function handleVisibility() {
+      if (document.hidden) { unsubscribe(); } else { subscribe(); }
+    }
+
+    subscribe();
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility);
+      unsubscribe();
+    };
+  }, [workspaceId]);
 
   // 달력 그리드 계산
   const firstDay = new Date(year, month - 1, 1).getDay(); // 0=Sun
@@ -152,6 +200,7 @@ export default function CalendarView({ workspaceId, userId, initialItems, member
       completed_at: next ? new Date().toISOString() : null,
       completed_by: next ? userId : null,
     }).eq('id', item.id);
+    router.refresh();
   }
 
   function getMember(uid: string | null) {
@@ -419,7 +468,9 @@ function CalAddSheet({ workspaceId, userId, members, presetDate, onClose, onAdde
   onClose: () => void;
   onAdded: (item: CalItem) => void;
 }) {
+  const router = useRouter();
   const { dragProps, sheetStyle } = useDragSheet(onClose);
+  const composingRef = useRef(false);
   const [type, setType] = useState<ItemType>('TODO');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -431,7 +482,7 @@ function CalAddSheet({ workspaceId, userId, members, presetDate, onClose, onAdde
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!title.trim()) return;
+    if (composingRef.current || !title.trim()) return;
     setLoading(true);
     const supabase = createClient();
     const endDate = multiDay && eventEndDate && eventEndDate > eventDate ? eventEndDate : null;
@@ -449,6 +500,7 @@ function CalAddSheet({ workspaceId, userId, members, presetDate, onClose, onAdde
     setLoading(false);
     if (error) { alert('추가 실패: ' + error.message); return; }
     if (data) onAdded(data as CalItem);
+    router.refresh();
     onClose();
   }
 
@@ -504,6 +556,8 @@ function CalAddSheet({ workspaceId, userId, members, presetDate, onClose, onAdde
             <div style={{ fontSize: 10.5, fontWeight: 700, color: '#8A7359', letterSpacing: '0.06em', marginBottom: 4 }}>제목</div>
             <input
               required value={title} onChange={(e) => setTitle(e.target.value)}
+              onCompositionStart={() => { composingRef.current = true; }}
+              onCompositionEnd={(e) => { composingRef.current = false; setTitle((e.target as HTMLInputElement).value); }}
               placeholder="무엇을 함께 할까요?" autoFocus
               style={{ display: 'block', width: '100%', background: 'none', border: 'none', outline: 'none', padding: 0, fontSize: 16, fontWeight: 700, color: '#2A1B0E', letterSpacing: '-0.01em' }}
             />

@@ -75,7 +75,7 @@ export default function EditDisplayName({ workspaceId, userId, initialName, avat
               ref={inputRef}
               value={value}
               onChange={(e) => { setValue(e.target.value); setErr(''); }}
-              onKeyDown={(e) => { if (e.key === 'Enter') save(); if (e.key === 'Escape') cancel(); }}
+              onKeyDown={(e) => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) save(); if (e.key === 'Escape') cancel(); }}
               maxLength={20}
               style={{
                 width: '100%', boxSizing: 'border-box',

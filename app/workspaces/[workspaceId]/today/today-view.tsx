@@ -388,6 +388,8 @@ function MonthlyPlantCard({
 // ── 메인 컴포넌트 ────────────────────────────────────────────────
 export default function TodayView({ workspaceId, userId, initialItems, members, workspaceName, serverToday, monthlyPot, treeType: initialTreeType, treeSelectedYear, currentUser }: Props) {
   const router = useRouter();
+  const serverTodayRef = useRef(serverToday);
+  useEffect(() => { serverTodayRef.current = serverToday; }, [serverToday]);
   const [items, setItems] = useState<Item[]>(initialItems);
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<Item | null>(null);
@@ -432,18 +434,18 @@ export default function TodayView({ workspaceId, userId, initialItems, members, 
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     function handlePayload(payload: { eventType: string; new: any; old: any }) {
+      const todayDate = serverTodayRef.current;
+      const _d = new Date(todayDate + 'T00:00:00');
+      _d.setDate(_d.getDate() + 30);
+      const inThirtyDays = _d.toISOString().slice(0, 10);
       if (payload.eventType === 'INSERT') {
         const n = payload.new;
-        const todayDate = new Date().toISOString().slice(0, 10);
-        const inThirtyDays = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
         const isUpcoming = n.event_date && n.event_date > todayDate && n.event_date <= inThirtyDays;
         if (n.timeframe === 'daily' || n.is_recurring || isUpcoming) {
           setItems((prev) => prev.some((i) => i.id === n.id) ? prev : [n as Item, ...prev]);
         }
       } else if (payload.eventType === 'UPDATE') {
         const n = payload.new;
-        const todayDate = new Date().toISOString().slice(0, 10);
-        const inThirtyDays = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
         const isUpcoming = n.event_date && n.event_date > todayDate && n.event_date <= inThirtyDays;
         if (n.timeframe !== 'daily' && !n.is_recurring && !isUpcoming) {
           setItems((prev) => prev.filter((i) => i.id !== n.id));
@@ -467,7 +469,16 @@ export default function TodayView({ workspaceId, userId, initialItems, members, 
     }
 
     function handleVisibility() {
-      if (document.hidden) { unsubscribe(); } else { subscribe(); }
+      if (document.hidden) {
+        unsubscribe();
+      } else {
+        const nowDate = new Date().toISOString().slice(0, 10);
+        if (nowDate !== serverTodayRef.current) {
+          router.refresh();
+        } else {
+          subscribe();
+        }
+      }
     }
 
     subscribe();
@@ -893,6 +904,7 @@ function TodayAddSheet({
   onAdded: (item: Item) => void;
 }) {
   const { dragProps, sheetStyle } = useDragSheet(onClose);
+  const composingRef = useRef(false);
   const [type, setType] = useState<ItemType>('TODO');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -912,7 +924,7 @@ function TodayAddSheet({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!title.trim()) return;
+    if (composingRef.current || !title.trim()) return;
     setLoading(true);
     const supabase = createClient();
     const todayDate = new Date().toISOString().slice(0, 10);
@@ -1001,6 +1013,8 @@ function TodayAddSheet({
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
+              onCompositionStart={() => { composingRef.current = true; }}
+              onCompositionEnd={(e) => { composingRef.current = false; setTitle((e.target as HTMLInputElement).value); }}
               placeholder="무엇을 함께 할까요?"
               autoFocus
               style={{

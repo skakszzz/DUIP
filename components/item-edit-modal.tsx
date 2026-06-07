@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useDragSheet } from '@/lib/use-drag-sheet';
 import { createClient } from '@/lib/supabase/client';
 import type { ItemType, RecurrenceRule } from '@/lib/types';
@@ -54,6 +54,7 @@ export const TIMEFRAME_OPTIONS = [
 
 export default function ItemEditModal({ item, members, onClose, onUpdated, onDeleted, recurrenceSlot }: Props) {
   const { dragProps, sheetStyle } = useDragSheet(onClose);
+  const composingRef = useRef(false);
   const [type, setType]               = useState<ItemType>(item.type);
   const [title, setTitle]             = useState(item.title);
   const [description, setDescription] = useState(item.description ?? '');
@@ -77,7 +78,7 @@ export default function ItemEditModal({ item, members, onClose, onUpdated, onDel
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!title.trim()) return;
+    if (composingRef.current || !title.trim()) return;
     setSaving(true);
     const supabase = createClient();
     const { data, error } = await supabase
@@ -165,6 +166,8 @@ export default function ItemEditModal({ item, members, onClose, onUpdated, onDel
             required
             value={title}
             onChange={(e) => setTitle(e.target.value)}
+            onCompositionStart={() => { composingRef.current = true; }}
+            onCompositionEnd={(e) => { composingRef.current = false; setTitle((e.target as HTMLInputElement).value); }}
             placeholder="제목"
             className="rounded-xl border border-[#E8D5B8] bg-white px-4 py-3 text-[#5C3A1F] placeholder:text-[#C8B89A] focus:outline-none focus:ring-2 focus:ring-[#B86F4B] text-base"
           />

@@ -49,18 +49,27 @@ export default async function GardenPage({ params }: Props) {
 
   const { data: allItems } = await supabase
     .from('items')
-    .select('id, title, type, is_completed, completed_at, created_at')
+    .select('id, title, type, is_completed, completed_at, created_at, is_recurring, recurrence_last_done')
     .eq('workspace_id', workspaceId)
     .order('created_at', { ascending: false });
 
-  // 월별 완료 개수 (completed_at 기준)
+  // 월별 완료 개수: 일반 항목은 completed_at, 반복 항목은 recurrence_last_done 기준
   const completedByMonth: Record<number, number> = {};
   for (const item of allItems ?? []) {
-    if (!item.is_completed || !item.completed_at) continue;
-    const d = new Date(item.completed_at);
-    if (d.getFullYear() === year) {
-      const m = d.getMonth() + 1;
-      completedByMonth[m] = (completedByMonth[m] ?? 0) + 1;
+    if (item.is_recurring) {
+      if (!item.recurrence_last_done) continue;
+      const d = new Date(item.recurrence_last_done);
+      if (d.getFullYear() === year) {
+        const m = d.getMonth() + 1;
+        completedByMonth[m] = (completedByMonth[m] ?? 0) + 1;
+      }
+    } else {
+      if (!item.is_completed || !item.completed_at) continue;
+      const d = new Date(item.completed_at);
+      if (d.getFullYear() === year) {
+        const m = d.getMonth() + 1;
+        completedByMonth[m] = (completedByMonth[m] ?? 0) + 1;
+      }
     }
   }
 
