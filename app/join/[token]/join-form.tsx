@@ -32,28 +32,23 @@ export default function JoinForm({ token, workspaceId, workspaceName, userId }: 
     setError('');
 
     const supabase = createClient();
-
-    const { error: memError } = await supabase.from('memberships').insert({
-      workspace_id: workspaceId,
-      user_id: userId,
-      display_name: displayName.trim(),
-      avatar,
-      color,
-      role: 'member',
+    const { data, error: rpcError } = await supabase.rpc('join_workspace_with_code', {
+      p_code: token,
+      p_display_name: displayName.trim(),
+      p_avatar: avatar,
+      p_color: color,
     });
 
-    if (memError) {
-      setError(memError.message);
+    if (rpcError || !data?.ok) {
+      const errCode = data?.error_code ?? '';
+      if (errCode === 'NOT_FOUND') setError('코드를 찾을 수 없어요');
+      else if (errCode === 'EXPIRED') setError('만료된 코드예요');
+      else setError('합류에 실패했어요. 다시 시도해주세요');
       setLoading(false);
       return;
     }
 
-    await supabase
-      .from('invites')
-      .update({ used_at: new Date().toISOString() })
-      .eq('token', token);
-
-    router.push(`/workspaces/${workspaceId}`);
+    router.push(`/workspaces/${data.workspace_id}/today`);
   }
 
   return (

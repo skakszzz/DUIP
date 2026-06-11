@@ -58,27 +58,14 @@ export default function WorkspacePickerClient({ gardens, userName, seasonLabel, 
     setChecking(true);
     setCodeErr('');
     const supabase = createClient();
-    const { data: invite } = await supabase
-      .from('invites')
-      .select('token, workspace_id, expires_at, used_at')
-      .eq('token', code)
-      .maybeSingle();
-
-    if (!invite) { setChecking(false); setCodeErr('코드를 찾을 수 없어요'); return; }
-    if (invite.used_at || new Date(invite.expires_at) < new Date()) {
-      setChecking(false); setCodeErr('만료된 코드예요'); return;
+    const { data } = await supabase.rpc('get_invite_info', { p_code: code });
+    if (!data || data.length === 0) {
+      setChecking(false);
+      setCodeErr('코드를 찾을 수 없거나 만료됐어요');
+      return;
     }
-
-    const { data: existing } = await supabase
-      .from('memberships').select('user_id')
-      .eq('workspace_id', invite.workspace_id).eq('user_id', userId).maybeSingle();
-    if (existing) { router.push(`/workspaces/${invite.workspace_id}/today`); return; }
-
-    const { data: ws } = await supabase
-      .from('workspaces').select('name').eq('id', invite.workspace_id).maybeSingle();
-
     setChecking(false);
-    setPending({ token: code, workspaceId: invite.workspace_id, workspaceName: ws?.name ?? '동산' });
+    setPending({ token: code, workspaceId: data[0].workspace_id, workspaceName: data[0].workspace_name ?? '동산' });
   }
 
   async function handleJoin(e: React.FormEvent) {
@@ -86,15 +73,21 @@ export default function WorkspacePickerClient({ gardens, userName, seasonLabel, 
     if (!pending || !displayName.trim()) return;
     setJoining(true); setJoinErr('');
     const supabase = createClient();
-    const { error } = await supabase.from('memberships').insert({
-      workspace_id: pending.workspaceId,
-      user_id: userId,
-      display_name: displayName.trim(),
-      avatar, color, role: 'member',
+    const { data, error } = await supabase.rpc('join_workspace_with_code', {
+      p_code: pending.token,
+      p_display_name: displayName.trim(),
+      p_avatar: avatar,
+      p_color: color,
     });
-    if (error) { setJoinErr(error.message); setJoining(false); return; }
-    await supabase.from('invites').update({ used_at: new Date().toISOString() }).eq('token', pending.token);
-    router.push(`/workspaces/${pending.workspaceId}/today`);
+    if (error || !data?.ok) {
+      const code = data?.error_code ?? '';
+      if (code === 'NOT_FOUND') setJoinErr('코드를 찾을 수 없어요');
+      else if (code === 'EXPIRED') setJoinErr('만료된 코드예요');
+      else setJoinErr('합류에 실패했어요. 다시 시도해주세요');
+      setJoining(false);
+      return;
+    }
+    router.push(`/workspaces/${data.workspace_id}/today`);
   }
 
   return (
@@ -106,7 +99,6 @@ export default function WorkspacePickerClient({ gardens, userName, seasonLabel, 
         maxGardens={3}
         onOpen={(id) => router.push(`/workspaces/${id}/today`)}
         onNew={() => router.push('/workspaces/new')}
-        onSettings={() => router.push('/settings')}
         onJoinCode={() => setShowJoin(true)}
       />
 
