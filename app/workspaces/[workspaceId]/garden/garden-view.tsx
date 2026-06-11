@@ -928,7 +928,7 @@ function ScreenshotOverlay({ pots, treeType, year, currentMonth, onClose }: {
           <div
             key={month}
             style={{
-              position: 'absolute', left: `${pos.left}%`, bottom: `${pos.bottomPct}%`,
+              position: 'absolute', left: `${pot?.pos_x != null ? pot.pos_x : pos.left}%`, bottom: `${pot?.pos_y != null ? pot.pos_y : pos.bottomPct}%`,
               display: 'flex', flexDirection: 'column', alignItems: 'center',
               transform: isCurrent ? 'translateX(-50%) scale(1.15)' : 'translateX(-50%)',
               transformOrigin: 'bottom center',

@@ -292,10 +292,11 @@ function MonthAddSheet({ workspaceId, userId, members, onClose, onAdded }: {
   const [description, setDescription] = useState('');
   const [ownerUserId, setOwnerUserId] = useState<string>(userId);
   const [loading, setLoading] = useState(false);
+  const composingRef = useRef(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!title.trim()) return;
+    if (composingRef.current || !title.trim()) return;
     setLoading(true);
     const supabase = createClient();
     const { data, error } = await supabase.from('items').insert({
@@ -357,6 +358,8 @@ function MonthAddSheet({ workspaceId, userId, members, onClose, onAdded }: {
             <div style={{ fontSize: 10.5, fontWeight: 700, color: '#8A7359', letterSpacing: '0.06em', marginBottom: 4 }}>제목</div>
             <input
               required value={title} onChange={(e) => setTitle(e.target.value)}
+              onCompositionStart={() => { composingRef.current = true; }}
+              onCompositionEnd={() => { composingRef.current = false; }}
               placeholder="무엇을 함께 할까요?" autoFocus
               style={{ display: 'block', width: '100%', background: 'none', border: 'none', outline: 'none', padding: 0, fontSize: 15, fontWeight: 700, color: '#2A1B0E', letterSpacing: '-0.01em' }}
             />
