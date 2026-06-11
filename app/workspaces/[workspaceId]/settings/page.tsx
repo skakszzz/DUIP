@@ -42,7 +42,7 @@ export default async function SettingsPage({ params }: Props) {
     .single();
 
   return (
-    <div style={{ minHeight: '100dvh', background: T.cream, fontFamily: '"Pretendard Variable","Pretendard",-apple-system,sans-serif' }}>
+    <div style={{ minHeight: '100dvh', background: T.cream }}>
       <div style={{ maxWidth: 448, margin: '0 auto', padding: '52px 16px 100px' }}>
 
         {/* 헤더 */}

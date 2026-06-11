@@ -83,7 +83,7 @@ export default function MemoDetailView({ workspaceId, userId, members, initialMe
   const authors = blockAuthors(blocks, initialMemo.created_by);
 
   return (
-    <div style={{ minHeight: '100dvh', background: T.cream, fontFamily: '"Pretendard Variable","Pretendard",-apple-system,sans-serif' }}>
+    <div style={{ minHeight: '100dvh', background: T.cream }}>
       <div style={{ maxWidth: 448, margin: '0 auto', padding: '14px 16px 150px' }}>
         {/* 헤더 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>

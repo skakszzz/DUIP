@@ -113,7 +113,6 @@ export default function WorkspacePickerClient({ gardens, userName, seasonLabel, 
               width: '100%', maxWidth: 440, margin: '0 auto',
               background: T.cream, borderRadius: '28px 28px 0 0',
               padding: '0 20px calc(36px + env(safe-area-inset-bottom))',
-              fontFamily: '"Pretendard Variable","Pretendard",-apple-system,sans-serif',
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'center', padding: '14px 0 22px' }}>

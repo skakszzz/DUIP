@@ -53,7 +53,7 @@ export default function MemoDrawCanvas({ initial, onSave, onCancel }: Props) {
   const toPts = (st: Stroke) => st.points.map(([x, y]) => `${x * W},${y * H}`).join(' ');
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 200, background: '#FFFDF8', display: 'flex', flexDirection: 'column', fontFamily: '"Pretendard Variable","Pretendard",-apple-system,sans-serif' }}>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 200, background: '#FFFDF8', display: 'flex', flexDirection: 'column' }}>
       {/* 상단바 */}
       <div style={{ display: 'flex', alignItems: 'center', padding: '14px 14px 8px', gap: 8 }}>
         <button onClick={onCancel} style={{ height: 36, padding: '0 14px', borderRadius: 9999, background: '#FFFCF7', border: 'none', boxShadow: '0 1px 2px rgba(74,46,22,0.05)', fontSize: 13, fontWeight: 700, color: '#7B5530', cursor: 'pointer' }}>취소</button>

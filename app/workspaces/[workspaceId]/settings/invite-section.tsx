@@ -56,7 +56,7 @@ export default function InviteSection({ workspaceId, userId }: Props) {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, fontFamily: '"Pretendard Variable","Pretendard",-apple-system,sans-serif' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <div>
         <div style={{ fontSize: 14, fontWeight: 700, color: T.ink, marginBottom: 4 }}>멤버 초대</div>
         <div style={{ fontSize: 12.5, color: T.inkMute, lineHeight: 1.6 }}>

@@ -30,7 +30,6 @@ const T = {
   sh1: '0 1px 2px rgba(74,46,22,0.05)',
   sh3: '0 8px 24px rgba(74,46,22,0.08), 0 2px 6px rgba(74,46,22,0.04)',
   rFull: 999,
-  body: '"Pretendard Variable","Pretendard",-apple-system,sans-serif',
   serif: '"Gowun Dodum",-apple-system,sans-serif',
 };
 
@@ -119,7 +118,7 @@ function GardenCard({ g, onOpen }: { g: Garden; onOpen?: (id: string) => void })
     <div onClick={() => onOpen?.(g.id)} style={{
       borderRadius: 28, padding: 18, position: 'relative', overflow: 'hidden', cursor: 'pointer',
       background: `linear-gradient(160deg, ${T.lavender}aa 0%, ${T.butter}66 52%, ${T.paper} 100%)`,
-      boxShadow: T.sh3, fontFamily: T.body,
+      boxShadow: T.sh3,
     }}>
       <div style={{ position: 'absolute', top: -54, right: -44, width: 170, height: 170, borderRadius: '50%', background: `radial-gradient(circle, ${T.sun}55, transparent 70%)` }} />
 
@@ -177,7 +176,7 @@ function NewGardenCard({ onNew }: { onNew?: () => void }) {
     <div onClick={onNew} style={{
       borderRadius: 24, padding: '20px 18px', cursor: 'pointer',
       background: T.paper, boxShadow: T.sh1, border: `1.5px dashed ${T.taupe}`,
-      display: 'flex', alignItems: 'center', gap: 14, fontFamily: T.body,
+      display: 'flex', alignItems: 'center', gap: 14,
     }}>
       <div style={{ width: 46, height: 46, borderRadius: T.rFull, background: T.sand, display: 'grid', placeItems: 'center', flex: '0 0 auto' }}>
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={T.wood700} strokeWidth="2.2" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
@@ -212,7 +211,7 @@ export function WorkspacePicker({
     ? '오늘도 둘이 함께 키워볼까요?'
     : '첫 동산을 만들어 함께 키워볼까요?');
   return (
-    <div style={{ position: 'relative', width: '100%', maxWidth: 440, minHeight: '100dvh', margin: '0 auto', background: T.cream, overflow: 'hidden', fontFamily: T.body }}>
+    <div style={{ position: 'relative', width: '100%', maxWidth: 440, minHeight: '100dvh', margin: '0 auto', background: T.cream, overflow: 'hidden' }}>
       <svg viewBox="0 0 390 300" preserveAspectRatio="xMidYMax slice" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: 300, pointerEvents: 'none' }}>
         <defs>
           <linearGradient id="wsp-sky" x1="0" y1="0" x2="0" y2="1">

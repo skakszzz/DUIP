@@ -13,7 +13,6 @@ const T = {
   wood700: '#7B5530', wood800: '#5C3A1F', wood900: '#34200E',
   sh1: '0 1px 2px rgba(74,46,22,0.05)',
   sh3: '0 8px 24px rgba(74,46,22,0.08), 0 2px 6px rgba(74,46,22,0.04)',
-  family: '"Pretendard Variable", "Pretendard", -apple-system, sans-serif',
 };
 
 // 새싹을 빛 웅덩이 위에 띄운 공통 일러스트
@@ -35,13 +34,13 @@ function PlusIcon({ size = 19, color = '#FBF6EE' }: { size?: number; color?: str
 // today-view의 항목 리스트 자리(완료/오늘/예정 모두 0개)에 렌더.
 export function EmptyHome({ onAdd }: { onAdd?: () => void }) {
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '40px 40px 60px', fontFamily: T.family }}>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '40px 40px 60px',}}>
       <Sprout id="lavender" stage={2} size={140} />
       <div style={{ fontSize: 19, fontWeight: 800, color: T.ink, letterSpacing: '-0.02em', marginTop: 12 }}>오늘은 아직 비어 있어요</div>
       <div style={{ fontSize: 13.5, color: T.inkMute, lineHeight: 1.6, marginTop: 8, maxWidth: 250 }}>
         첫 잎을 심으면 이번 달 화분이<br />자라기 시작해요. 둘이 함께요.
       </div>
-      <button onClick={onAdd} style={{ marginTop: 22, height: 50, padding: '0 26px', borderRadius: 999, border: 'none', background: T.wood800, color: T.cream, fontFamily: T.family, fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', display: 'inline-flex', alignItems: 'center', gap: 9, boxShadow: T.sh3, cursor: 'pointer' }}>
+      <button onClick={onAdd} style={{ marginTop: 22, height: 50, padding: '0 26px', borderRadius: 999, border: 'none', background: T.wood800, color: T.cream, fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', display: 'inline-flex', alignItems: 'center', gap: 9, boxShadow: T.sh3, cursor: 'pointer' }}>
         <PlusIcon /> 첫 잎 심기
       </button>
     </div>
@@ -52,7 +51,7 @@ export function EmptyHome({ onAdd }: { onAdd?: () => void }) {
 // calendar-view에서 달 그리드 아래(날짜 패널 자리)에 렌더.
 export function EmptyCalendar() {
   return (
-    <div style={{ margin: '18px 16px 0', padding: '26px 20px', background: T.paper, borderRadius: 24, boxShadow: T.sh1, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', fontFamily: T.family }}>
+    <div style={{ margin: '18px 16px 0', padding: '26px 20px', background: T.paper, borderRadius: 24, boxShadow: T.sh1, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center',}}>
       <Sprout id="tulip" stage={1} size={96} />
       <div style={{ fontSize: 15.5, fontWeight: 800, color: T.ink, letterSpacing: '-0.02em', marginTop: 8 }}>이 달엔 아직 약속이 없어요</div>
       <div style={{ fontSize: 12.5, color: T.inkMute, lineHeight: 1.55, marginTop: 6 }}>
@@ -70,8 +69,7 @@ export function EmptyGarden({ month = 1 }: { month?: number }) {
     <div style={{
       position: 'absolute', bottom: 96, left: '50%', transform: 'translateX(-50%)', zIndex: 9,
       display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 2,
-      padding: '10px 20px', borderRadius: 20, whiteSpace: 'nowrap', fontFamily: T.family,
-      background: 'rgba(255,253,247,0.82)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
+      padding: '10px 20px', borderRadius: 20, whiteSpace: 'nowrap',      background: 'rgba(255,253,247,0.82)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
       boxShadow: '0 6px 20px rgba(74,46,22,0.14)',
     }}>
       <span style={{ fontSize: 13, fontWeight: 800, color: T.ink, letterSpacing: '-0.01em' }}>동산이 막 시작됐어요</span>
