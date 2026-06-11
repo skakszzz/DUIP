@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
+import { kstNow } from '@/lib/dates';
 import GardenView from './garden-view';
 
 export const revalidate = 20;
@@ -30,7 +31,7 @@ export default async function GardenPage({ params }: Props) {
     .single();
   if (!membership) redirect('/workspaces');
 
-  const now = new Date();
+  const now = kstNow();
   const year = now.getFullYear();
   const currentMonth = now.getMonth() + 1;
 

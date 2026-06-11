@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useDragSheet } from '@/lib/use-drag-sheet';
 import { EmptyCalendar } from '@/components/empty-states';
 import { createClient } from '@/lib/supabase/client';
+import { kstNow } from '@/lib/dates';
 import type { ItemType } from '@/lib/types';
 
 interface CalItem {
@@ -66,7 +67,7 @@ function TypeIcon({ type, size = 14, color }: { type: ItemType; size?: number; c
 
 export default function CalendarView({ workspaceId, userId, initialItems, members }: Props) {
   const router = useRouter();
-  const now = new Date();
+  const now = kstNow();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1); // 1-based
   const [items, setItems] = useState<CalItem[]>(initialItems);

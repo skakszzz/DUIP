@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import { useDragSheet } from '@/lib/use-drag-sheet';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { kstToday } from '@/lib/dates';
 import type { ItemType, RecurrenceRule, SoilType, TreeType } from '@/lib/types';
 import { PlantGrow } from '@/components/plant-grow';
 import { EmptyHome } from '@/components/empty-states';
@@ -472,7 +473,7 @@ export default function TodayView({ workspaceId, userId, initialItems, members, 
       if (document.hidden) {
         unsubscribe();
       } else {
-        const nowDate = new Date().toISOString().slice(0, 10);
+        const nowDate = kstToday();
         if (nowDate !== serverTodayRef.current) {
           router.refresh();
         } else {
@@ -927,7 +928,7 @@ function TodayAddSheet({
     if (composingRef.current || !title.trim()) return;
     setLoading(true);
     const supabase = createClient();
-    const todayDate = new Date().toISOString().slice(0, 10);
+    const todayDate = kstToday();
     const useDate = scheduleMode === 'date' ? eventDate : '';
     const timeframe = useDate && useDate > todayDate ? 'oneshot' : 'daily';
     const { data, error } = await supabase.from('items').insert({

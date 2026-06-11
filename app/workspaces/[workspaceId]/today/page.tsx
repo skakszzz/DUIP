@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
+import { kstNow } from '@/lib/dates';
 import TodayView from './today-view';
 
 export const dynamic = 'force-dynamic';
@@ -16,7 +17,7 @@ export default async function TodayPage({ params }: Props) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
-  const _now = new Date();
+  const _now = kstNow();
   const today = `${_now.getFullYear()}-${String(_now.getMonth()+1).padStart(2,'0')}-${String(_now.getDate()).padStart(2,'0')}`;
   const inThirtyDays = new Date(_now.getFullYear(), _now.getMonth(), _now.getDate() + 30).toISOString().slice(0, 10);
 
