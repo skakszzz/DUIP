@@ -120,11 +120,15 @@ export default function MonthBoard({ workspaceId, userId, initialItems, members,
     const supabase = createClient();
     const next = !item.is_completed;
     setItems((prev) => prev.map((i) => i.id === item.id ? { ...i, is_completed: next } : i));
-    await supabase.from('items').update({
+    const { error } = await supabase.from('items').update({
       is_completed: next,
       completed_at: next ? new Date().toISOString() : null,
       completed_by: next ? userId : null,
     }).eq('id', item.id);
+    if (error) {
+      setItems((prev) => prev.map((i) => i.id === item.id ? { ...i, is_completed: !next } : i));
+      alert('잠시 후 다시 시도해주세요');
+    }
   }
 
   function getMember(uid: string | null) {

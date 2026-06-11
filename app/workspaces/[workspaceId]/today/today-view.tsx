@@ -369,23 +369,41 @@ export default function TodayView({ workspaceId, userId, initialItems, members, 
 
     if (!item.is_recurring) {
       setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, is_completed: next } : i)));
-      await supabase.from('items').update({
+      setMonthlyPotState((prev) =>
+        prev ? { ...prev, growth_points: Math.max(0, (prev.growth_points ?? 0) + (next ? 1 : -1)) } : prev
+      );
+      const { error } = await supabase.from('items').update({
         is_completed: next,
         completed_at: next ? new Date().toISOString() : null,
         completed_by: next ? userId : null,
       }).eq('id', item.id);
+      if (error) {
+        setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, is_completed: !next } : i)));
+        setMonthlyPotState((prev) =>
+          prev ? { ...prev, growth_points: Math.max(0, (prev.growth_points ?? 0) + (next ? -1 : 1)) } : prev
+        );
+        alert('잠시 후 다시 시도해주세요');
+      }
     } else {
       setItems((prev) => prev.map((i) =>
         i.id === item.id ? { ...i, recurrence_last_done: next ? today : null } : i
       ));
-      await supabase.from('items').update({
+      setMonthlyPotState((prev) =>
+        prev ? { ...prev, growth_points: Math.max(0, (prev.growth_points ?? 0) + (next ? 1 : -1)) } : prev
+      );
+      const { error } = await supabase.from('items').update({
         recurrence_last_done: next ? today : null,
       }).eq('id', item.id);
+      if (error) {
+        setItems((prev) => prev.map((i) =>
+          i.id === item.id ? { ...i, recurrence_last_done: next ? null : today } : i
+        ));
+        setMonthlyPotState((prev) =>
+          prev ? { ...prev, growth_points: Math.max(0, (prev.growth_points ?? 0) + (next ? -1 : 1)) } : prev
+        );
+        alert('잠시 후 다시 시도해주세요');
+      }
     }
-
-    setMonthlyPotState((prev) =>
-      prev ? { ...prev, growth_points: Math.max(0, (prev.growth_points ?? 0) + (next ? 1 : -1)) } : prev
-    );
   }
 
   function handleUpdated(updated: Item) {

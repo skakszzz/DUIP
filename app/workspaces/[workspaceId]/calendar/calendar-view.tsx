@@ -171,12 +171,17 @@ export default function CalendarView({ workspaceId, userId, initialItems, member
     const supabase = createClient();
     const next = !item.is_completed;
     setItems((prev) => prev.map((i) => i.id === item.id ? { ...i, is_completed: next } : i));
-    await supabase.from('items').update({
+    const { error } = await supabase.from('items').update({
       is_completed: next,
       completed_at: next ? new Date().toISOString() : null,
       completed_by: next ? userId : null,
     }).eq('id', item.id);
-    router.refresh();
+    if (error) {
+      setItems((prev) => prev.map((i) => i.id === item.id ? { ...i, is_completed: !next } : i));
+      alert('잠시 후 다시 시도해주세요');
+    } else {
+      router.refresh();
+    }
   }
 
   function getMember(uid: string | null) {
