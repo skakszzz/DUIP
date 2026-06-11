@@ -1,47 +1,39 @@
-// 공통 로딩 폴백 — 화면 진입(Server Component 데이터 패칭) 동안 "불러오는 중" 표시.
-// 같은 내용을 각 탭 세그먼트의 loading.tsx 로 두면 홈/캘린더/동산이 동일하게 동작합니다.
-//
-// 배치 (각각 같은 파일을 복사):
-//   app/workspaces/[workspaceId]/today/loading.tsx
-//   app/workspaces/[workspaceId]/calendar/loading.tsx
-//   app/workspaces/[workspaceId]/garden/loading.tsx
-//   app/workspaces/[workspaceId]/loading.tsx        ← '이번 달' 보드까지 통일하려면
-//
-// Next.js App Router가 각 page.tsx(async)가 데이터를 기다리는 동안
-// 자동으로 이 컴포넌트를 Suspense 폴백으로 보여줍니다. 별도 배선 불필요.
-
-export default function Loading() {
+export default function GardenLoading() {
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: '#FBF6EE',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 16,
-        zIndex: 50,
-      }}
-    >
-      {/* 두 잎 마크가 살랑 — 브랜드 일관 */}
-      <div className="duip-load-mark" style={{ transformOrigin: 'bottom center' }}>
-        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" aria-hidden>
-          <path d="M12 21c0-5 3-8 8-8-.3 5-3 8-8 8Z" fill="#7B5530" />
-          <path d="M12 21c-5 0-8-3-8-8 5 .3 8 3 8 8Z" fill="#7C9466" />
-          <path d="M12 21V11" stroke="#34200E" strokeWidth="1.6" strokeLinecap="round" />
-        </svg>
-      </div>
-      <div style={{ fontSize: 13.5, fontWeight: 700, color: '#8A7359', letterSpacing: '-0.01em' }}>
-        불러오는 중…
-      </div>
-
+    <div style={{ position: 'relative', minHeight: 'calc(100svh - 60px)', overflow: 'hidden', background: '#EAF1F0' }}>
       <style>{`
-        .duip-load-mark{animation:duipSway 1.6s ease-in-out infinite;}
-        @keyframes duipSway{0%,100%{transform:rotate(-6deg);}50%{transform:rotate(6deg);}}
-        @media (prefers-reduced-motion: reduce){.duip-load-mark{animation:none;}}
+        @keyframes gl-sway { 0%,100%{transform:rotate(-4deg)} 50%{transform:rotate(4deg)} }
+        @keyframes gl-pulse { 0%,100%{opacity:.5} 50%{opacity:1} }
+        @keyframes gl-drift { 0%{transform:translateX(0)} 100%{transform:translateX(18px)} }
+        @media (prefers-reduced-motion: reduce){ .gl-anim{animation:none!important} }
       `}</style>
+      <svg viewBox="0 0 390 844" preserveAspectRatio="xMidYMid slice"
+           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
+        <defs>
+          <linearGradient id="gl-sky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#EAF1F0"/><stop offset="48%" stopColor="#FBEFD2"/><stop offset="100%" stopColor="#EAD49C"/>
+          </linearGradient>
+        </defs>
+        <rect width="390" height="844" fill="url(#gl-sky)"/>
+        <g className="gl-anim" style={{ animation: 'gl-drift 6s ease-in-out infinite alternate' }} opacity=".5">
+          <ellipse cx="90" cy="150" rx="34" ry="13" fill="#fff"/><ellipse cx="118" cy="155" rx="22" ry="9" fill="#fff"/>
+          <ellipse cx="290" cy="110" rx="28" ry="11" fill="#fff"/>
+        </g>
+        <path d="M-10 560 Q 110 505 210 530 Q 320 555 400 518 L400 844 L-10 844 Z" fill="#BBD3B4" opacity=".8"/>
+        <path d="M-10 640 Q 90 585 200 610 Q 310 635 400 595 L400 844 L-10 844 Z" fill="#97BC8B"/>
+        <path d="M-10 730 Q 110 695 200 712 Q 290 728 400 692 L400 844 L-10 844 Z" fill="#79A06E"/>
+      </svg>
+      <div style={{ position: 'absolute', left: '50%', top: '42%', transform: 'translate(-50%,-50%)', textAlign: 'center' }}>
+        <svg width="54" height="54" viewBox="0 0 24 24" fill="none" className="gl-anim"
+             style={{ transformOrigin: 'bottom center', animation: 'gl-sway 1.6s ease-in-out infinite' }}>
+          <path d="M12 21v-7" stroke="#5C8A4E" strokeWidth="2" strokeLinecap="round"/>
+          <path d="M12 14c-4 0-6.5-2.6-7-6 4 0 6.6 2 7 6Z" fill="#7C9466"/>
+          <path d="M12 14c4 0 6.5-2.6 7-6-4 0-6.6 2-7 6Z" fill="#A0B88A"/>
+        </svg>
+        <div className="gl-anim" style={{ marginTop: 10, fontSize: 13.5, fontWeight: 700, color: '#5C3A1F', animation: 'gl-pulse 1.6s ease-in-out infinite' }}>
+          동산에 물 주는 중…
+        </div>
+      </div>
     </div>
   );
 }
