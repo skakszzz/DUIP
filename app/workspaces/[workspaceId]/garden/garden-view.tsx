@@ -34,7 +34,6 @@ interface MonthItem {
   title: string;
   type: string;
   is_completed: boolean;
-  completed_at: string | null;
 }
 
 interface Props {

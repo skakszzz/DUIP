@@ -3,8 +3,6 @@ import { redirect } from 'next/navigation';
 import { kstNow } from '@/lib/dates';
 import GardenView from './garden-view';
 
-export const revalidate = 20;
-
 interface Props {
   params: Promise<{ workspaceId: string }>;
 }
@@ -50,59 +48,17 @@ export default async function GardenPage({ params }: Props) {
 
   const { data: allItems } = await supabase
     .from('items')
-    .select('id, title, type, is_completed, completed_at, created_at, is_recurring, recurrence_last_done')
+    .select('id, title, type, is_completed, created_at')
     .eq('workspace_id', workspaceId)
     .order('created_at', { ascending: false });
 
-  // 월별 완료 개수: 일반 항목은 completed_at, 반복 항목은 recurrence_last_done 기준
-  const completedByMonth: Record<number, number> = {};
-  for (const item of allItems ?? []) {
-    if (item.is_recurring) {
-      if (!item.recurrence_last_done) continue;
-      const d = new Date(item.recurrence_last_done);
-      if (d.getFullYear() === year) {
-        const m = d.getMonth() + 1;
-        completedByMonth[m] = (completedByMonth[m] ?? 0) + 1;
-      }
-    } else {
-      if (!item.is_completed || !item.completed_at) continue;
-      const d = new Date(item.completed_at);
-      if (d.getFullYear() === year) {
-        const m = d.getMonth() + 1;
-        completedByMonth[m] = (completedByMonth[m] ?? 0) + 1;
-      }
-    }
-  }
-
-  // non-recurring 완료 개수가 DB값보다 많을 때만 올림 (반복 완료 기여분 보존)
-  const potsToSync = (pots ?? []).filter(
-    (p) => (completedByMonth[p.month] ?? 0) > p.growth_points
-  );
-  if (potsToSync.length > 0) {
-    await Promise.all(
-      potsToSync.map((p) =>
-        supabase
-          .from('monthly_pots')
-          .update({ growth_points: completedByMonth[p.month] ?? 0 })
-          .eq('id', p.id)
-      )
-    );
-  }
-
-  // 렌더에 쓸 화분 — DB값과 non-recurring 집계 중 큰 값 사용
-  const syncedPots = (pots ?? []).map((p) => ({
-    ...p,
-    growth_points: Math.max(p.growth_points, completedByMonth[p.month] ?? 0),
-  }));
-
-  // 월별 아이템 통계 (G 화면용)
   const monthStats = Array.from({ length: 12 }).map((_, i) => {
     const month = i + 1;
     const items = (allItems ?? []).filter((item) => {
       const d = new Date(item.created_at);
       return d.getFullYear() === year && d.getMonth() + 1 === month;
     });
-    return { month, completedCount: completedByMonth[month] ?? 0, items };
+    return { month, completedCount: items.filter((item) => item.is_completed).length, items };
   });
 
   return (
@@ -110,7 +66,7 @@ export default async function GardenPage({ params }: Props) {
       workspaceId={workspaceId}
       year={year}
       currentMonth={currentMonth}
-      pots={syncedPots}
+      pots={pots ?? []}
       monthStats={monthStats}
       treeType={workspace.tree_type}
       workspaceName={workspace.name}
