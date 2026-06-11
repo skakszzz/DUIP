@@ -4,6 +4,9 @@ import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import type { ItemType, RecurrenceRule } from '@/lib/types';
 import ItemEditModal from '@/components/item-edit-modal';
+import { TYPE_COLOR, TYPE_TINT, TYPE_LABEL, TYPE_OPTIONS } from '@/lib/item-style';
+import { TypeIcon } from '@/components/type-icon';
+import { Pebble } from '@/components/pebble';
 
 interface Item {
   id: string;
@@ -35,113 +38,7 @@ interface Props {
   initialMonth: number;
 }
 
-const TYPE_COLOR: Record<ItemType, string> = {
-  TODO: '#7C9466',
-  WISH: '#C77C6A',
-  ETC:  '#8C7691',
-};
-const TYPE_TINT: Record<ItemType, string> = {
-  TODO: '#E6EDD8',
-  WISH: '#F4DCD3',
-  ETC:  '#ECE3EF',
-};
-const TYPE_LABEL: Record<ItemType, string> = {
-  TODO: '할일',
-  WISH: '소망',
-  ETC:  '기타',
-};
 const TYPES: ItemType[] = ['TODO', 'WISH', 'ETC'];
-const TYPE_OPTIONS: { value: ItemType; label: string }[] = [
-  { value: 'TODO', label: '할일' },
-  { value: 'WISH', label: '소망' },
-  { value: 'ETC',  label: '기타' },
-];
-
-function TypeIcon({ type, size = 16, color }: { type: ItemType; size?: number; color: string }) {
-  const p = { width: size, height: size, viewBox: '0 0 24 24', fill: 'none' as const, stroke: color, strokeWidth: 1.8, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
-  if (type === 'WISH') return (
-    <svg {...p}><path d="M12 4v6M12 14v6M4 12h6M14 12h6"/><path d="M7 7l3 3M14 14l3 3M17 7l-3 3M10 14l-3 3" opacity=".8"/></svg>
-  );
-  if (type === 'ETC') return (
-    <svg {...p}><path d="M3 12V5a2 2 0 0 1 2-2h7l9 9-9 9-9-9Z" fill={color} fillOpacity=".18"/><circle cx="8" cy="8" r="1.6" fill={color} stroke="none"/></svg>
-  );
-  return <svg {...p}><path d="M5 12.5 10 17.5 19 7.5"/></svg>;
-}
-
-function Pebble({ item, onToggle, onClick, ownerMember }: {
-  item: Item;
-  onToggle: (e: React.MouseEvent) => void;
-  onClick: () => void;
-  ownerMember?: Member;
-}) {
-  const color = TYPE_COLOR[item.type];
-  const tint  = TYPE_TINT[item.type];
-  return (
-    <div
-      onClick={onClick}
-      style={{
-        background: item.is_completed
-          ? `linear-gradient(180deg, ${tint}55 0%, #FFFCF7 100%)`
-          : '#FFFCF7',
-        borderRadius: 22,
-        padding: '13px 14px',
-        display: 'flex', alignItems: 'center', gap: 12,
-        boxShadow: item.is_completed
-          ? '0 1px 2px rgba(74,46,22,0.05)'
-          : '0 2px 8px rgba(74,46,22,0.06), 0 1px 2px rgba(74,46,22,0.04)',
-        cursor: 'pointer',
-      }}
-    >
-      <button
-        onClick={onToggle}
-        style={{
-          flexShrink: 0, width: 36, height: 36, borderRadius: 9999,
-          background: item.is_completed ? color : tint,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          border: 'none', cursor: 'pointer',
-          boxShadow: item.is_completed ? 'none' : `inset 0 0 0 2px ${color}28`,
-          transition: 'all 0.15s',
-        }}
-      >
-        {item.is_completed ? (
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round">
-            <path d="M5 12.5 10 17.5 19 7.5"/>
-          </svg>
-        ) : (
-          <TypeIcon type={item.type} size={16} color={color}/>
-        )}
-      </button>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{
-          fontSize: 15, fontWeight: 700,
-          color: item.is_completed ? '#B09779' : '#2A1B0E',
-          textDecorationLine: item.is_completed ? 'line-through' : 'none',
-          textDecorationColor: '#B09779',
-          letterSpacing: '-0.015em', lineHeight: 1.3,
-          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-        }}>
-          {item.title}
-        </div>
-        {item.description && (
-          <div style={{ fontSize: 12, color: '#8A7359', marginTop: 2, letterSpacing: '-0.01em' }}>
-            {item.description}
-          </div>
-        )}
-      </div>
-      {ownerMember && (
-        <div style={{
-          width: 24, height: 24, borderRadius: 9999,
-          background: ownerMember.color, color: '#fff',
-          fontSize: 10, fontWeight: 800,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          flexShrink: 0, boxShadow: '0 0 0 2px #FFFCF7',
-        }}>
-          {ownerMember.display_name.charAt(0)}
-        </div>
-      )}
-    </div>
-  );
-}
 
 function TypeBucket({ type, count }: { type: ItemType; count: number }) {
   const color = TYPE_COLOR[type];
@@ -326,6 +223,7 @@ export default function MonthBoard({ workspaceId, userId, initialItems, members,
                 <Pebble
                   key={item.id}
                   item={item}
+                  completed={item.is_completed}
                   onToggle={(e) => { e.stopPropagation(); toggleComplete(item); }}
                   onClick={() => setEditingItem(item)}
                   ownerMember={getMember(item.owner_user_id)}

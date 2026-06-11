@@ -7,6 +7,9 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { kstToday } from '@/lib/dates';
 import { STAGE_NEED, stageFromPoints } from '@/lib/growth';
+import { TYPE_COLOR, TYPE_TINT, TYPE_OPTIONS } from '@/lib/item-style';
+import { TypeIcon } from '@/components/type-icon';
+import { Pebble } from '@/components/pebble';
 import type { ItemType, RecurrenceRule, SoilType, TreeType } from '@/lib/types';
 import { PlantGrow } from '@/components/plant-grow';
 import { EmptyHome } from '@/components/empty-states';
@@ -60,24 +63,6 @@ interface Props {
   currentUser: { displayName: string; avatar: string; color: string };
 }
 
-// ── 색상 토큰 ────────────────────────────────────────────────────
-const TYPE_COLOR: Record<ItemType, string> = {
-  TODO: '#7C9466',
-  WISH: '#C77C6A',
-  ETC:  '#8C7691',
-};
-const TYPE_TINT: Record<ItemType, string> = {
-  TODO: '#E6EDD8',
-  WISH: '#F4DCD3',
-  ETC:  '#ECE3EF',
-};
-
-const TYPE_OPTIONS: { value: ItemType; label: string }[] = [
-  { value: 'TODO', label: '할일' },
-  { value: 'WISH', label: '소망' },
-  { value: 'ETC',  label: '기타' },
-];
-
 function getTodayLabel(serverToday: string) {
   // 'T12:00:00' 추가로 로컬 타임존에서 올바른 요일/날짜 파싱
   const d = new Date(serverToday + 'T12:00:00');
@@ -91,12 +76,6 @@ function getCurrentMonth(serverToday: string) {
 }
 
 // ── 반복 헬퍼 ────────────────────────────────────────────────────
-function daysUntil(dateStr: string, serverToday: string): number {
-  const today = new Date(serverToday + 'T00:00:00');
-  const target = new Date(dateStr + 'T00:00:00');
-  return Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-}
-
 function matchesToday(rule: RecurrenceRule, serverToday: string): boolean {
   const d = new Date(serverToday + 'T12:00:00');
   if (rule.pattern === 'daily') return true;
@@ -108,136 +87,6 @@ function matchesToday(rule: RecurrenceRule, serverToday: string): boolean {
 function isCompletedToday(item: Item, serverToday: string): boolean {
   if (!item.is_recurring) return item.is_completed;
   return item.recurrence_last_done === serverToday;
-}
-
-// ── 타입 아이콘 ──────────────────────────────────────────────────
-function TypeIcon({ type, size = 16, color }: { type: ItemType; size?: number; color: string }) {
-  const props = { width: size, height: size, viewBox: '0 0 24 24', fill: 'none' as const, stroke: color, strokeWidth: 1.8, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
-  if (type === 'WISH') return (
-    <svg {...props}><path d="M12 4v6M12 14v6M4 12h6M14 12h6"/><path d="M7 7l3 3M14 14l3 3M17 7l-3 3M10 14l-3 3" opacity=".8"/></svg>
-  );
-  if (type === 'ETC') return (
-    <svg {...props}><path d="M3 12V5a2 2 0 0 1 2-2h7l9 9-9 9-9-9Z" fill={color} fillOpacity=".18"/><circle cx="8" cy="8" r="1.6" fill={color} stroke="none"/></svg>
-  );
-  return (
-    <svg {...props}><path d="M5 12.5 10 17.5 19 7.5"/></svg>
-  );
-}
-
-// ── 항목 행 (Pebble) ─────────────────────────────────────────────
-function Pebble({
-  item, onToggle, onClick, ownerMember, showDateBadge, completed, serverToday,
-}: {
-  item: Item;
-  onToggle: (e: React.MouseEvent) => void;
-  onClick: () => void;
-  ownerMember?: Member;
-  showDateBadge?: boolean;
-  completed: boolean;
-  serverToday: string;
-}) {
-  const color = TYPE_COLOR[item.type];
-  const tint  = TYPE_TINT[item.type];
-
-  return (
-    <div
-      onClick={onClick}
-      style={{
-        background: completed
-          ? `linear-gradient(180deg, ${tint}55 0%, #FFFCF7 100%)`
-          : '#FFFCF7',
-        borderRadius: 22,
-        padding: '13px 14px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 12,
-        boxShadow: completed
-          ? '0 1px 2px rgba(74,46,22,0.05), 0 1px 0 rgba(74,46,22,0.02)'
-          : '0 2px 8px rgba(74,46,22,0.06), 0 1px 2px rgba(74,46,22,0.04)',
-        cursor: 'pointer',
-      }}
-    >
-      {/* 체크 버튼 */}
-      <button
-        onClick={onToggle}
-        style={{
-          flexShrink: 0,
-          width: 36, height: 36, borderRadius: 9999,
-          background: completed ? color : tint,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          border: 'none', cursor: 'pointer',
-          boxShadow: completed ? 'none' : `inset 0 0 0 2px ${color}28`,
-          transition: 'all 0.15s',
-        }}
-      >
-        {completed ? (
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round">
-            <path d="M5 12.5 10 17.5 19 7.5"/>
-          </svg>
-        ) : (
-          <TypeIcon type={item.type} size={16} color={color}/>
-        )}
-      </button>
-
-      {/* 텍스트 */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 0 }}>
-          <div style={{
-            fontSize: 15, fontWeight: 700,
-            color: completed ? '#B09779' : '#2A1B0E',
-            textDecorationLine: completed ? 'line-through' : 'none',
-            textDecorationColor: '#B09779',
-            letterSpacing: '-0.015em', lineHeight: 1.3,
-            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-          }}>
-            {item.title}
-          </div>
-          {item.is_recurring && (
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
-              stroke="#B09779" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round"
-              style={{ flexShrink: 0, opacity: 0.7 }}>
-              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-              <path d="M3 3v5h5"/>
-            </svg>
-          )}
-        </div>
-        {item.description && (
-          <div style={{ fontSize: 12, color: '#8A7359', marginTop: 2, letterSpacing: '-0.01em' }}>
-            {item.description}
-          </div>
-        )}
-      </div>
-
-      {/* D-N 배지 */}
-      {showDateBadge && item.event_date && (() => {
-        const d = daysUntil(item.event_date, serverToday);
-        const label = d === 0 ? 'D-Day' : d > 0 ? `D-${d}` : `D+${Math.abs(d)}`;
-        const bg = d === 0 ? '#C77C6A' : d <= 3 ? '#E8A87C' : '#A0B88A';
-        return (
-          <div style={{
-            flexShrink: 0, padding: '2px 8px', borderRadius: 9999,
-            background: bg, color: '#fff',
-            fontSize: 10, fontWeight: 800, letterSpacing: '0.02em',
-          }}>
-            {label}
-          </div>
-        );
-      })()}
-
-      {/* 담당자 */}
-      {ownerMember && (
-        <div style={{
-          width: 24, height: 24, borderRadius: 9999,
-          background: ownerMember.color, color: '#fff',
-          fontSize: 10, fontWeight: 800,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          flexShrink: 0, boxShadow: '0 0 0 2px #FFFCF7',
-        }}>
-          {ownerMember.display_name.charAt(0)}
-        </div>
-      )}
-    </div>
-  );
 }
 
 // ── 섹션 구분선 ──────────────────────────────────────────────────

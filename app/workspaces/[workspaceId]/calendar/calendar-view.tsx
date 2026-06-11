@@ -7,6 +7,8 @@ import { EmptyCalendar } from '@/components/empty-states';
 import { createClient } from '@/lib/supabase/client';
 import { kstNow } from '@/lib/dates';
 import type { ItemType } from '@/lib/types';
+import { TYPE_COLOR, TYPE_TINT, TYPE_LABEL, TYPE_OPTIONS } from '@/lib/item-style';
+import { TypeIcon } from '@/components/type-icon';
 
 interface CalItem {
   id: string;
@@ -32,37 +34,10 @@ interface Props {
   members: Member[];
 }
 
-const TYPE_COLOR: Record<ItemType, string> = {
-  TODO: '#7C9466',
-  WISH: '#C77C6A',
-  ETC:  '#8C7691',
-};
-const TYPE_TINT: Record<ItemType, string> = {
-  TODO: '#E6EDD8',
-  WISH: '#F4DCD3',
-  ETC:  '#ECE3EF',
-};
-const TYPE_LABEL: Record<ItemType, string> = {
-  TODO: '할일',
-  WISH: '소망',
-  ETC:  '기타',
-};
-const TYPE_OPTIONS: { value: ItemType; label: string }[] = [
-  { value: 'TODO', label: '할일' },
-  { value: 'WISH', label: '소망' },
-  { value: 'ETC',  label: '기타' },
-];
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 
 function toDateKey(y: number, m: number, d: number) {
   return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-}
-
-function TypeIcon({ type, size = 14, color }: { type: ItemType; size?: number; color: string }) {
-  const p = { width: size, height: size, viewBox: '0 0 24 24', fill: 'none' as const, stroke: color, strokeWidth: 1.8, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
-  if (type === 'WISH') return <svg {...p}><path d="M12 4v6M12 14v6M4 12h6M14 12h6"/></svg>;
-  if (type === 'ETC') return <svg {...p}><path d="M3 12V5a2 2 0 0 1 2-2h7l9 9-9 9-9-9Z" fill={color} fillOpacity=".18"/><circle cx="8" cy="8" r="1.5" fill={color} stroke="none"/></svg>;
-  return <svg {...p}><path d="M5 12.5 10 17.5 19 7.5"/></svg>;
 }
 
 export default function CalendarView({ workspaceId, userId, initialItems, members }: Props) {
