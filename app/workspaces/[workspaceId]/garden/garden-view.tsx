@@ -10,6 +10,7 @@ import { plants } from '@/lib/data/plants';
 import { soilVariants } from '@/lib/data/pots';
 import { PLANT_EMOJIS } from '@/lib/data/plant-emojis';
 import { PotView } from '@/components/pot-view';
+import { stageFromPoints } from '@/lib/growth';
 import type { SoilType } from '@/lib/types';
 
 interface MonthlyPot {
@@ -56,17 +57,6 @@ const TREE_NAME: Record<string, string> = {
 const MONTH_KO = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
 
 const GROWTH_LABELS = ['', '흙', '새싹', '잎', '성숙기', '꽃핌'];
-
-const MONTHLY_TARGET = 300; // 하루 10개 × 30일 = 100%
-
-function getStage(completed: number): 1 | 2 | 3 | 4 | 5 {
-  const pct = completed / MONTHLY_TARGET;
-  if (pct === 0) return 1;
-  if (pct < 0.25) return 2;
-  if (pct < 0.5) return 3;
-  if (pct < 0.75) return 4;
-  return 5;
-}
 
 // 화분 렌더링 (실제 이미지 + 이모지 폴백)
 function PotCell({ stage, plantId, soilType, size = 52 }: { stage: number; plantId: string | null; soilType: SoilType; size?: number }) {
@@ -210,7 +200,7 @@ export default function GardenView({ workspaceId, year, currentMonth, pots: init
 
   const selectedPot = pots.find((p) => p.month === pickerMonth);
   const totalCompleted = pots.reduce((sum, p) => sum + p.growth_points, 0);
-  const bloomedPots = pots.filter((p) => getStage(p.growth_points) === 5).length;
+  const bloomedPots = pots.filter((p) => stageFromPoints(p.growth_points) === 5).length;
 
   async function selectPlant(plantId: string, soilId: SoilType) {
     if (!selectedPot) return;
@@ -359,7 +349,7 @@ export default function GardenView({ workspaceId, year, currentMonth, pots: init
         if (month > currentMonth) return null;
         const pot = pots.find((p) => p.month === month);
         const completed = pot?.growth_points ?? 0;
-        const stage = pot ? getStage(completed) : 1;
+        const stage = pot ? stageFromPoints(completed) : 1;
         const pos = POT_POSITIONS[i];
         const isCurrent = month === currentMonth;
 
@@ -571,7 +561,7 @@ function MonthDetailSheet({ month, pot, completed, stat, onClose, onPickPlant }:
   onPickPlant: () => void;
 }) {
   const { dragProps, sheetStyle } = useDragSheet(onClose);
-  const stage = pot ? getStage(completed) : 1;
+  const stage = pot ? stageFromPoints(completed) : 1;
   const plant = plants.find((p) => p.id === pot?.plant_id);
 
   return (
@@ -734,7 +724,7 @@ function TreeDetailSheet({ year, treeType, treeEmoji, treeName, totalCompleted, 
             const month = i + 1;
             const pot = pots.find((p) => p.month === month);
             const completed = pot?.growth_points ?? 0;
-            const stage = pot ? getStage(completed) : 1;
+            const stage = pot ? stageFromPoints(completed) : 1;
             const plant = plants.find((p) => p.id === pot?.plant_id);
             const isCurrent = month === currentMonth;
 
@@ -930,7 +920,7 @@ function ScreenshotOverlay({ pots, treeType, year, currentMonth, onClose }: {
         const month = i + 1;
         if (month > currentMonth) return null;
         const pot = pots.find((p) => p.month === month);
-        const stage = pot ? getStage(pot.growth_points) : 1;
+        const stage = pot ? stageFromPoints(pot.growth_points) : 1;
         const pos = POT_POSITIONS[i];
         const isCurrent = month === currentMonth;
         return (

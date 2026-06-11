@@ -6,6 +6,7 @@ import { useDragSheet } from '@/lib/use-drag-sheet';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { kstToday } from '@/lib/dates';
+import { STAGE_NEED, stageFromPoints } from '@/lib/growth';
 import type { ItemType, RecurrenceRule, SoilType, TreeType } from '@/lib/types';
 import { PlantGrow } from '@/components/plant-grow';
 import { EmptyHome } from '@/components/empty-states';
@@ -239,15 +240,6 @@ function Pebble({
   );
 }
 
-// ── 완료율 → 성장 단계 ───────────────────────────────────────────
-function calcStage(pct: number): 1 | 2 | 3 | 4 | 5 {
-  if (pct === 0) return 1;
-  if (pct < 0.25) return 2;
-  if (pct < 0.5)  return 3;
-  if (pct < 0.75) return 4;
-  return 5;
-}
-
 // ── 섹션 구분선 ──────────────────────────────────────────────────
 function Bucket({ label, count }: { label: string; count?: number }) {
   return (
@@ -263,12 +255,6 @@ function Bucket({ label, count }: { label: string; count?: number }) {
   );
 }
 
-// ── growth_points → 단계 계산 ────────────────────────────────────
-const NEED = [0, 4, 8, 14, 20]; // 누적 잎 → 단계 경계
-function calcStageFromPts(pts: number): 1 | 2 | 3 | 4 | 5 {
-  return (Math.min(5, NEED.filter(n => pts >= n).length) || 1) as 1|2|3|4|5;
-}
-
 // ── 이번 달 식물 카드 ─────────────────────────────────────────────
 function MonthlyPlantCard({
   month, completedCount, total, expanded, onToggle, monthlyPot, onBloom,
@@ -280,9 +266,9 @@ function MonthlyPlantCard({
 }) {
   const pct = total > 0 ? completedCount / total : 0;
   const pts = monthlyPot?.growth_points ?? 0;
-  const stage = calcStageFromPts(pts);
-  const base = NEED[stage - 1] ?? 0;
-  const next = NEED[stage] ?? base;
+  const stage = stageFromPoints(pts);
+  const base = (STAGE_NEED as readonly number[])[stage - 1] ?? 0;
+  const next = (STAGE_NEED as readonly number[])[stage] ?? base;
 
   if (!expanded) {
     return (
