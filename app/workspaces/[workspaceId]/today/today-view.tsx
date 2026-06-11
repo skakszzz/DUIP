@@ -534,19 +534,9 @@ export default function TodayView({ workspaceId, userId, initialItems, members, 
       }).eq('id', item.id);
     }
 
-    // growth_points 업데이트 — 반복/일반 모두 현재 달 화분에 반영
-    const { data: pot } = await supabase
-      .from('monthly_pots')
-      .select('id, growth_points')
-      .eq('workspace_id', workspaceId)
-      .eq('year', currentYear)
-      .eq('month', currentMonth)
-      .single();
-    if (pot) {
-      await supabase.from('monthly_pots')
-        .update({ growth_points: Math.max(0, (pot.growth_points ?? 0) + (next ? 1 : -1)) })
-        .eq('id', pot.id);
-    }
+    setMonthlyPotState((prev) =>
+      prev ? { ...prev, growth_points: Math.max(0, (prev.growth_points ?? 0) + (next ? 1 : -1)) } : prev
+    );
   }
 
   function handleUpdated(updated: Item) {
