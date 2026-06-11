@@ -117,7 +117,7 @@ export default function PlantPickerSheet({ workspaceId, year, month, onDone, onS
                       transition: 'all 0.15s',
                     }}
                   >
-                    <img src={`/pots/soil-${soil.id}.png`} alt={soil.nameKo} style={{ width: 80, height: 80, objectFit: 'contain' }} />
+                    <img src={`/pots/soil-${soil.id}.webp`} alt={soil.nameKo} style={{ width: 80, height: 80, objectFit: 'contain' }} />
                     <div style={{ fontSize: 14, fontWeight: 800, color: '#2A1B0E' }}>{soil.nameKo}</div>
                     <div style={{ fontSize: 11, color: '#8A7359', textAlign: 'center', lineHeight: 1.4 }}>{soil.description}</div>
                   </button>

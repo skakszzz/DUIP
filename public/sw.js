@@ -1,4 +1,4 @@
-const CACHE = 'duip-v2';
+const CACHE = 'duip-v3';
 
 const PRECACHE = [
   '/manifest.json',

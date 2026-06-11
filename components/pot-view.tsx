@@ -32,7 +32,7 @@ interface PotViewProps {
 }
 
 export function PotView({ soilId, plantId, stage, size = 200 }: PotViewProps) {
-  const soilSrc = `/pots/soil-${soilId}.png`;
+  const soilSrc = `/pots/soil-${soilId}.webp`;
 
   // 식물 이미지 수직 오프셋 (px)
   const offsetPx = PLANT_OFFSET_Y * size;

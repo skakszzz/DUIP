@@ -86,7 +86,7 @@ function TreeImage({ treeType, treeEmoji, size }: { treeType: string; treeEmoji:
   if (!imgError && VALID_TREE_TYPES.includes(treeType)) {
     return (
       <Image
-        src={`/trees/${treeType}.png`}
+        src={`/trees/${treeType}.webp`}
         alt=""
         width={size}
         height={treeH}

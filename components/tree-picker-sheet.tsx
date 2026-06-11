@@ -100,7 +100,7 @@ export default function TreePickerSheet({ workspaceId, currentYear, onDone, onSk
                 }}
               >
                 <img
-                  src={`/trees/${tree.id}.png`}
+                  src={`/trees/${tree.id}.webp`}
                   alt={tree.name}
                   style={{ width: 56, height: 56, objectFit: 'contain', flexShrink: 0 }}
                 />
