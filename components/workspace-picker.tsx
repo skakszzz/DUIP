@@ -74,15 +74,18 @@ function MiniTree({ size = 92, treeType = 'zelkova' }: { size?: number; treeType
   );
 }
 
-function MemberDots({ members, size = 26 }: { members: GardenMember[]; size?: number }) {
+function MemberDots({ members }: { members: GardenMember[] }) {
   return (
-    <div style={{ display: 'flex' }}>
+    <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
       {members.slice(0, 3).map((m, k) => (
         <div key={k} style={{
-          width: size, height: size, borderRadius: T.rFull, background: m.color, color: '#fff',
-          fontSize: size * 0.42, fontWeight: 800, display: 'grid', placeItems: 'center',
-          boxShadow: `0 0 0 2.5px ${T.paper}`, marginLeft: k ? -8 : 0,
-        }}>{m.initial}</div>
+          height: 24, padding: '0 10px', borderRadius: T.rFull,
+          background: m.color, color: '#fff',
+          fontSize: 11, fontWeight: 800,
+          display: 'flex', alignItems: 'center',
+          boxShadow: `0 0 0 2px ${T.paper}`,
+          maxWidth: 96, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis',
+        }}>{m.name ?? m.initial}</div>
       ))}
     </div>
   );
@@ -235,9 +238,7 @@ export function WorkspacePicker({
             </svg>
             <span style={{ fontSize: 15, fontWeight: 800, color: T.wood800, fontFamily: T.serif, letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>두잎</span>
           </div>
-          <button onClick={onSettings} style={{ width: 34, height: 34, borderRadius: T.rFull, background: 'rgba(255,253,247,0.7)', display: 'grid', placeItems: 'center', boxShadow: T.sh1, border: 'none', cursor: 'pointer' }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={T.wood700} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 0 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 0 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1A2 2 0 1 1 7 5l.1.1a1.7 1.7 0 0 0 1.8.3 1.7 1.7 0 0 0 1-1.5V3a2 2 0 0 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1A2 2 0 1 1 19 7l-.1.1a1.7 1.7 0 0 0-.3 1.8 1.7 1.7 0 0 0 1.5 1H21a2 2 0 0 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z" /></svg>
-          </button>
+          <div style={{ width: 34 }} />
         </div>
 
         <div style={{ padding: '26px 24px 22px' }}>
