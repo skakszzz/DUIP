@@ -58,7 +58,7 @@ const MONTH_KO = ['1월','2월','3월','4월','5월','6월','7월','8월','9월'
 const GROWTH_LABELS = ['', '흙', '새싹', '잎', '성숙기', '꽃핌'];
 
 // 화분 렌더링 (실제 이미지 + 이모지 폴백)
-function PotCell({ stage, plantId, soilType, size = 52 }: { stage: number; plantId: string | null; soilType: SoilType; size?: number }) {
+function PotCell({ stage, plantId, soilType, size = 52, preferArtwork }: { stage: number; plantId: string | null; soilType: SoilType; size?: number; preferArtwork?: boolean }) {
   return (
     <div style={{ filter: stage === 5 ? 'drop-shadow(0 0 8px rgba(242,198,110,0.6))' : 'none' }}>
       <PotView
@@ -66,6 +66,7 @@ function PotCell({ stage, plantId, soilType, size = 52 }: { stage: number; plant
         plantId={plantId}
         stage={stage as 1 | 2 | 3 | 4 | 5}
         size={size}
+        preferArtwork={preferArtwork}
       />
     </div>
   );
@@ -389,6 +390,7 @@ export default function GardenView({ workspaceId, year, currentMonth, pots: init
               plantId={pot?.plant_id ?? null}
               soilType={pot?.soil_type ?? 'rich'}
               size={potSize}
+              preferArtwork
             />
             <div style={{
               marginTop: 2, fontSize: 9.5, fontWeight: 800,
@@ -577,7 +579,7 @@ function MonthDetailSheet({ month, pot, completed, stat, onClose, onPickPlant }:
         {/* 히어로 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
           <div style={{ position: 'relative' }}>
-            <PotCell stage={stage} plantId={pot?.plant_id ?? null} soilType={pot?.soil_type ?? 'rich'} size={64}/>
+            <PotCell stage={stage} plantId={pot?.plant_id ?? null} soilType={pot?.soil_type ?? 'rich'} size={64} preferArtwork/>
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 11, fontWeight: 800, color: '#9A7553', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 3 }}>
@@ -738,7 +740,7 @@ function TreeDetailSheet({ year, treeType, treeEmoji, treeName, totalCompleted, 
                 }}
               >
                 <div style={{ lineHeight: 1 }}>
-                  <PotCell stage={stage} plantId={pot?.plant_id ?? null} soilType={pot?.soil_type ?? 'rich'} size={28}/>
+                  <PotCell stage={stage} plantId={pot?.plant_id ?? null} soilType={pot?.soil_type ?? 'rich'} size={28} preferArtwork/>
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -935,7 +937,7 @@ function ScreenshotOverlay({ pots, treeType, year, currentMonth, onClose }: {
               pointerEvents: 'none',
             }}
           >
-            <PotCell stage={stage} plantId={pot?.plant_id ?? null} soilType={pot?.soil_type ?? 'rich'} size={isCurrent ? 44 : 38} />
+            <PotCell stage={stage} plantId={pot?.plant_id ?? null} soilType={pot?.soil_type ?? 'rich'} size={isCurrent ? 44 : 38} preferArtwork/>
             <div style={{
               marginTop: 2, fontSize: 9.5, fontWeight: 800,
               color: isCurrent ? '#5C3A1F' : 'rgba(251,229,184,0.9)',

@@ -1,8 +1,10 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import type { SoilType } from '@/lib/types';
 import { PlantArt } from '@/components/plant-art';
+import { PLANT_ARTWORK } from '@/lib/data/plant-artwork';
 
 // ─────────────────────────────────────────────────────────────────
 // 화분/식물 레이어 정렬 상수
@@ -29,10 +31,16 @@ interface PotViewProps {
   plantId: string | null;
   stage: 1 | 2 | 3 | 4 | 5;
   size?: number;
+  preferArtwork?: boolean;
 }
 
-export function PotView({ soilId, plantId, stage, size = 200 }: PotViewProps) {
+export function PotView({ soilId, plantId, stage, size = 200, preferArtwork }: PotViewProps) {
   const soilSrc = `/pots/soil-${soilId}.webp`;
+  const [artError, setArtError] = useState(false);
+
+  // 원화 렌더링 조건: preferArtwork 켜짐 + 해당 식물 webp 존재 + stage >= 2 + 로드 에러 없음
+  const hasArt = !!(preferArtwork && plantId && PLANT_ARTWORK.has(plantId));
+  const showArtwork = stage >= 2 && hasArt && !artError;
 
   // 식물 이미지 수직 오프셋 (px)
   const offsetPx = PLANT_OFFSET_Y * size;
@@ -51,10 +59,22 @@ export function PotView({ soilId, plantId, stage, size = 200 }: PotViewProps) {
         style={{ objectFit: 'fill' }}
       />
 
-      {/* 상단 레이어: 식물 SVG — SOIL_Y 기준으로 밑동 앵커링 */}
+      {/* 상단 레이어: 원화 WebP 또는 SVG */}
       {stage >= 2 && plantId && (
         <div style={{ position: 'absolute', top: offsetPx, left: 0, width: size, height: size }}>
-          <PlantArt id={plantId} stage={stage} size={size} showPot={false} />
+          {showArtwork ? (
+            <Image
+              src={`/plants/${plantId}/stage${stage}.webp`}
+              alt=""
+              fill
+              sizes={`${size}px`}
+              draggable={false}
+              style={{ objectFit: 'contain' }}
+              onError={() => setArtError(true)}
+            />
+          ) : (
+            <PlantArt id={plantId} stage={stage} size={size} showPot={false} />
+          )}
         </div>
       )}
     </div>
