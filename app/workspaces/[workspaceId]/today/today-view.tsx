@@ -5,7 +5,8 @@ import dynamic from 'next/dynamic';
 import { useDragSheet } from '@/lib/use-drag-sheet';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { kstToday } from '@/lib/dates';
+import { kstToday, kstDateOf } from '@/lib/dates';
+import { useToast } from '@/components/toast';
 import { STAGE_NEED, stageFromPoints } from '@/lib/growth';
 import { TYPE_COLOR, TYPE_TINT, TYPE_OPTIONS } from '@/lib/item-style';
 import { TypeIcon } from '@/components/type-icon';
@@ -29,6 +30,7 @@ interface Item {
   type: ItemType;
   timeframe: string;
   is_completed: boolean;
+  completed_at: string | null;
   owner_user_id: string | null;
   created_by: string;
   is_recurring: boolean;
@@ -85,7 +87,9 @@ function matchesToday(rule: RecurrenceRule, serverToday: string): boolean {
 }
 
 function isCompletedToday(item: Item, serverToday: string): boolean {
-  if (!item.is_recurring) return item.is_completed;
+  if (!item.is_recurring) {
+    return item.is_completed && !!item.completed_at && kstDateOf(item.completed_at) === serverToday;
+  }
   return item.recurrence_last_done === serverToday;
 }
 
@@ -223,6 +227,7 @@ function MonthlyPlantCard({
 
 // ── 메인 컴포넌트 ────────────────────────────────────────────────
 export default function TodayView({ workspaceId, userId, initialItems, members, workspaceName, serverToday, monthlyPot, treeType: initialTreeType, treeSelectedYear, currentUser }: Props) {
+  const { showToast } = useToast();
   const router = useRouter();
   const serverTodayRef = useRef(serverToday);
   useEffect(() => { serverTodayRef.current = serverToday; }, [serverToday]);
@@ -333,6 +338,8 @@ export default function TodayView({ workspaceId, userId, initialItems, members, 
   const visibleItems = items.filter(i => {
     if (i.is_recurring) return i.recurrence_rule != null && matchesToday(i.recurrence_rule, today);
     if (i.event_date && i.event_date > today) return false; // 미래 날짜 → UPCOMING으로
+    // 완료됐지만 오늘 완료가 아닌 일반 항목 → 오늘 탭에서 제외 (월간보드/동산이 담당)
+    if (i.is_completed && i.completed_at && kstDateOf(i.completed_at) !== today) return false;
     return true;
   });
   const total = visibleItems.length;
@@ -382,7 +389,7 @@ export default function TodayView({ workspaceId, userId, initialItems, members, 
         setMonthlyPotState((prev) =>
           prev ? { ...prev, growth_points: Math.max(0, (prev.growth_points ?? 0) + (next ? -1 : 1)) } : prev
         );
-        alert('잠시 후 다시 시도해주세요');
+        showToast('잠시 후 다시 시도해주세요', 'error');
       }
     } else {
       setItems((prev) => prev.map((i) =>
@@ -401,7 +408,7 @@ export default function TodayView({ workspaceId, userId, initialItems, members, 
         setMonthlyPotState((prev) =>
           prev ? { ...prev, growth_points: Math.max(0, (prev.growth_points ?? 0) + (next ? -1 : 1)) } : prev
         );
-        alert('잠시 후 다시 시도해주세요');
+        showToast('잠시 후 다시 시도해주세요', 'error');
       }
     }
   }
@@ -427,7 +434,7 @@ export default function TodayView({ workspaceId, userId, initialItems, members, 
 
   return (
     <div className="min-h-screen bg-[#FBF6EE]">
-      <div className="max-w-md mx-auto" style={{ paddingBottom: 100 }}>
+      <div className="max-w-md mx-auto" style={{ paddingBottom: 'calc(100px + env(safe-area-inset-bottom, 0px))' }}>
         {/* ── 헤더 ── */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '52px 20px 12px' }}>
           <Link href="/workspaces" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
@@ -615,7 +622,7 @@ export default function TodayView({ workspaceId, userId, initialItems, members, 
         <button
           onClick={() => setShowForm(true)}
           style={{
-            position: 'fixed', right: 'max(18px, calc(50% - 206px))', bottom: 96, zIndex: 40,
+            position: 'fixed', right: 'max(18px, calc(50% - 206px))', bottom: 'calc(96px + env(safe-area-inset-bottom, 0px))', zIndex: 40,
             width: 56, height: 56, borderRadius: 9999,
             background: '#5C3A1F', color: '#FBF6EE', border: 'none',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -747,6 +754,7 @@ function TodayAddSheet({
   onClose: () => void;
   onAdded: (item: Item) => void;
 }) {
+  const { showToast } = useToast();
   const { dragProps, sheetStyle } = useDragSheet(onClose);
   const composingRef = useRef(false);
   const [type, setType] = useState<ItemType>('TODO');
@@ -787,7 +795,7 @@ function TodayAddSheet({
       event_date: useDate || null,
     }).select().single();
     setLoading(false);
-    if (error) { alert('추가 실패: ' + error.message); return; }
+    if (error) { showToast('추가 실패: ' + error.message, 'error'); return; }
     if (data) onAdded(data as Item);
     onClose();
   }

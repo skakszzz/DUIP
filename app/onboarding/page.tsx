@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Onboarding } from '@/components/onboarding';
+import { useToast } from '@/components/toast';
 
 export default function OnboardingPage() {
   return (
@@ -14,6 +15,7 @@ export default function OnboardingPage() {
 }
 
 function OnboardingContent() {
+  const { showToast } = useToast();
   const router = useRouter();
   const params = useSearchParams();
   const workspaceId = params.get('w') ?? '';
@@ -75,7 +77,7 @@ function OnboardingContent() {
     if (navigator.share) {
       navigator.share({ title: '두잎에 초대합니다', url });
     } else {
-      navigator.clipboard.writeText(url).then(() => alert('초대 링크가 복사됐어요!'));
+      navigator.clipboard.writeText(url).then(() => showToast('초대 링크가 복사됐어요!'));
     }
   }
 

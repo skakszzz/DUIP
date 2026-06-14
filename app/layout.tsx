@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Gowun_Dodum } from 'next/font/google';
 import { ServiceWorkerRegistrar } from '@/components/service-worker-registrar';
+import { ToastProvider } from '@/components/toast';
 import './globals.css';
 
 const gowunDodum = Gowun_Dodum({
@@ -35,6 +36,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   themeColor: '#5C3A1F',
   interactiveWidget: 'resizes-content', // 키보드 올라올 때 fixed 요소 함께 이동
+  viewportFit: 'cover', // env(safe-area-inset-*) 활성화
 };
 
 export default function RootLayout({
@@ -46,7 +48,7 @@ export default function RootLayout({
     <html lang="ko" className={`h-full ${gowunDodum.variable}`}>
       <body className="min-h-full bg-[#FBF6EE]">
         <ServiceWorkerRegistrar />
-        {children}
+        <ToastProvider>{children}</ToastProvider>
       </body>
     </html>
   );

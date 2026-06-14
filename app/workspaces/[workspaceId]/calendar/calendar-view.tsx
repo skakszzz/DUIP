@@ -9,6 +9,7 @@ import { kstNow } from '@/lib/dates';
 import type { ItemType } from '@/lib/types';
 import { TYPE_COLOR, TYPE_TINT, TYPE_LABEL, TYPE_OPTIONS } from '@/lib/item-style';
 import { TypeIcon } from '@/components/type-icon';
+import { useToast } from '@/components/toast';
 
 interface CalItem {
   id: string;
@@ -41,6 +42,7 @@ function toDateKey(y: number, m: number, d: number) {
 }
 
 export default function CalendarView({ workspaceId, userId, initialItems, members }: Props) {
+  const { showToast } = useToast();
   const router = useRouter();
   const now = kstNow();
   const [year, setYear] = useState(now.getFullYear());
@@ -178,7 +180,7 @@ export default function CalendarView({ workspaceId, userId, initialItems, member
     }).eq('id', item.id);
     if (error) {
       setItems((prev) => prev.map((i) => i.id === item.id ? { ...i, is_completed: !next } : i));
-      alert('잠시 후 다시 시도해주세요');
+      showToast('잠시 후 다시 시도해주세요', 'error');
     } else {
       router.refresh();
     }
@@ -449,6 +451,7 @@ function CalAddSheet({ workspaceId, userId, members, presetDate, onClose, onAdde
   onClose: () => void;
   onAdded: (item: CalItem) => void;
 }) {
+  const { showToast } = useToast();
   const router = useRouter();
   const { dragProps, sheetStyle } = useDragSheet(onClose);
   const composingRef = useRef(false);
@@ -479,7 +482,7 @@ function CalAddSheet({ workspaceId, userId, members, presetDate, onClose, onAdde
       event_end_date: endDate,
     }).select().single();
     setLoading(false);
-    if (error) { alert('추가 실패: ' + error.message); return; }
+    if (error) { showToast('추가 실패: ' + error.message, 'error'); return; }
     if (data) onAdded(data as CalItem);
     router.refresh();
     onClose();

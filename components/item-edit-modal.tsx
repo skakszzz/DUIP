@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import type { ItemType, RecurrenceRule } from '@/lib/types';
 import { RecurrenceEditor } from './recurrence-editor';
 import DateInput from './date-input';
+import { useToast } from './toast';
 
 export interface EditableItem {
   id: string;
@@ -53,6 +54,7 @@ export const TIMEFRAME_OPTIONS = [
 ];
 
 export default function ItemEditModal({ item, members, onClose, onUpdated, onDeleted, recurrenceSlot }: Props) {
+  const { showToast } = useToast();
   const { dragProps, sheetStyle } = useDragSheet(onClose);
   const composingRef = useRef(false);
   const [type, setType]               = useState<ItemType>(item.type);
@@ -98,7 +100,7 @@ export default function ItemEditModal({ item, members, onClose, onUpdated, onDel
       .select()
       .single();
     setSaving(false);
-    if (error) { alert('수정 실패: ' + error.message); return; }
+    if (error) { showToast('수정 실패: ' + error.message, 'error'); return; }
     if (data) onUpdated(data as EditableItem);
     onClose();
   }
@@ -110,7 +112,7 @@ export default function ItemEditModal({ item, members, onClose, onUpdated, onDel
     const supabase = createClient();
     const { error } = await supabase.from('items').delete().eq('id', item.id);
     setDeleting(false);
-    if (error) { alert('삭제 실패: ' + error.message); return; }
+    if (error) { showToast('삭제 실패: ' + error.message, 'error'); return; }
     onDeleted(item.id);
     onClose();
   }

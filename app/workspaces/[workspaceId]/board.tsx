@@ -7,6 +7,7 @@ import ItemEditModal from '@/components/item-edit-modal';
 import { TYPE_COLOR, TYPE_TINT, TYPE_LABEL, TYPE_OPTIONS } from '@/lib/item-style';
 import { TypeIcon } from '@/components/type-icon';
 import { Pebble } from '@/components/pebble';
+import { useToast } from '@/components/toast';
 
 interface Item {
   id: string;
@@ -55,6 +56,7 @@ function TypeBucket({ type, count }: { type: ItemType; count: number }) {
 }
 
 export default function MonthBoard({ workspaceId, userId, initialItems, members, initialYear, initialMonth }: Props) {
+  const { showToast } = useToast();
   const now = new Date();
   const curYear  = now.getFullYear();
   const curMonth = now.getMonth() + 1;
@@ -127,7 +129,7 @@ export default function MonthBoard({ workspaceId, userId, initialItems, members,
     }).eq('id', item.id);
     if (error) {
       setItems((prev) => prev.map((i) => i.id === item.id ? { ...i, is_completed: !next } : i));
-      alert('잠시 후 다시 시도해주세요');
+      showToast('잠시 후 다시 시도해주세요', 'error');
     }
   }
 
@@ -242,7 +244,7 @@ export default function MonthBoard({ workspaceId, userId, initialItems, members,
       <button
         onClick={() => setShowForm(true)}
         style={{
-          position: 'fixed', right: 18, bottom: 96, zIndex: 40,
+          position: 'fixed', right: 18, bottom: 'calc(96px + env(safe-area-inset-bottom, 0px))', zIndex: 40,
           width: 56, height: 56, borderRadius: 9999,
           background: '#5C3A1F', color: '#FBF6EE', border: 'none',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -291,6 +293,7 @@ function MonthAddSheet({ workspaceId, userId, members, onClose, onAdded }: {
   onClose: () => void;
   onAdded: (item: Item) => void;
 }) {
+  const { showToast } = useToast();
   const [type, setType] = useState<ItemType>('TODO');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -313,7 +316,7 @@ function MonthAddSheet({ workspaceId, userId, members, onClose, onAdded }: {
       timeframe: 'oneshot',
     }).select().single();
     setLoading(false);
-    if (error) { alert('추가 실패: ' + error.message); return; }
+    if (error) { showToast('추가 실패: ' + error.message, 'error'); return; }
     if (data) onAdded(data as Item);
     onClose();
   }

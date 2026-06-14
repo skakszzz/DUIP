@@ -10,6 +10,7 @@ import {
   MEMO_TINTS, Doodle, StrokesSvg, MemoAvatars, blockAuthors,
   type MemoRow, type MemoMember, type MemoBlock, type TintKey,
 } from '@/components/memo-shared';
+import { useToast } from '@/components/toast';
 
 interface Props {
   workspaceId: string;
@@ -50,6 +51,7 @@ function previewOf(blocks: MemoBlock[]) {
 }
 
 export default function MemosView({ workspaceId, userId, workspaceName, members, initialMemos }: Props) {
+  const { showToast } = useToast();
   const router = useRouter();
   const [memos] = useState<MemoRow[]>(initialMemos);
   const [creating, setCreating] = useState(false);
@@ -66,7 +68,7 @@ export default function MemosView({ workspaceId, userId, workspaceName, members,
       .select('id')
       .single();
     setCreating(false);
-    if (error) { alert('메모 생성 실패: ' + error.message); return; }
+    if (error) { showToast('메모 생성 실패: ' + error.message, 'error'); return; }
     if (data) router.push(`/workspaces/${workspaceId}/memos/${data.id}`);
   }
 
@@ -171,7 +173,7 @@ export default function MemosView({ workspaceId, userId, workspaceName, members,
         onClick={createMemo}
         disabled={creating}
         style={{
-          position: 'fixed', right: 'max(18px, calc(50% - 206px))', bottom: 84, zIndex: 40,
+          position: 'fixed', right: 'max(18px, calc(50% - 206px))', bottom: 'calc(84px + env(safe-area-inset-bottom, 0px))', zIndex: 40,
           width: 58, height: 58, borderRadius: 9999, border: 'none', cursor: 'pointer',
           background: T.wood800, color: T.cream, opacity: creating ? 0.6 : 1,
           display: 'grid', placeItems: 'center',

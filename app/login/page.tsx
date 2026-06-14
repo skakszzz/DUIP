@@ -117,6 +117,8 @@ export default function LoginPage() {
     setTimeout(() => setResent(false), 3000);
   }
 
+  const isKakao = typeof navigator !== 'undefined' && navigator.userAgent.includes('KAKAOTALK');
+
   return (
     <div style={{ minHeight: '100svh', background: '#E7DCC6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{
@@ -127,6 +129,19 @@ export default function LoginPage() {
         boxShadow: '0 24px 60px rgba(74,46,22,0.18)',
         borderRadius: 'clamp(0px, calc((100vw - 440px) * 999), 36px)',
       }}>
+
+        {/* ── 카카오 인앱브라우저 안내 배너 ── */}
+        {isKakao && (
+          <div style={{
+            background: '#F2E7A0', color: '#5C3A1F',
+            fontSize: 12.5, fontWeight: 600, lineHeight: 1.55,
+            padding: '10px 16px',
+            textAlign: 'center',
+          }}>
+            카카오톡 브라우저에서는 설치와 로그인이 안 될 수 있어요.<br/>
+            오른쪽 아래 ⋯ 메뉴에서 <b>'다른 브라우저로 열기'</b>를 눌러주세요.
+          </div>
+        )}
 
         {/* ── 하늘 씬 ── */}
         <div ref={skyRef} style={{ position: 'relative', flex: 1, overflow: 'hidden' }}>
