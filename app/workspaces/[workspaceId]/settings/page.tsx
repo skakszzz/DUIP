@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient, getCachedUser } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import InviteSection from './invite-section';
 import PushNotifManager from '@/components/push-notif-manager';
@@ -7,6 +7,7 @@ import DeleteWorkspaceButton from './delete-workspace-button';
 import LeaveWorkspaceButton from './leave-workspace-button';
 import EditWorkspaceName from './edit-workspace-name';
 import EditDisplayName from './edit-display-name';
+import EditProfileName from './edit-profile-name';
 import Link from 'next/link';
 
 interface Props {
@@ -24,7 +25,7 @@ export default async function SettingsPage({ params }: Props) {
   const { workspaceId } = await params;
   const supabase = await createClient();
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getCachedUser();
   if (!user) redirect('/login');
 
   const { data: workspace } = await supabase
@@ -34,12 +35,19 @@ export default async function SettingsPage({ params }: Props) {
     .single();
   if (!workspace) redirect('/workspaces');
 
-  const { data: myMembership } = await supabase
-    .from('memberships')
-    .select('display_name, avatar, color, role')
-    .eq('workspace_id', workspaceId)
-    .eq('user_id', user.id)
-    .single();
+  const [{ data: myMembership }, { data: profile }] = await Promise.all([
+    supabase
+      .from('memberships')
+      .select('display_name, avatar, color, role')
+      .eq('workspace_id', workspaceId)
+      .eq('user_id', user.id)
+      .single(),
+    supabase
+      .from('profiles')
+      .select('display_name')
+      .eq('id', user.id)
+      .maybeSingle(),
+  ]);
 
   return (
     <div style={{ minHeight: '100dvh', background: T.cream }}>
@@ -76,10 +84,18 @@ export default async function SettingsPage({ params }: Props) {
           }
         </div>
 
-        {/* 내 프로필 */}
+        {/* 내 이름 (profiles) */}
+        <div style={{ background: T.sand, borderRadius: 20, padding: '14px 16px', marginBottom: 10 }}>
+          <EditProfileName
+            userId={user.id}
+            initialName={profile?.display_name ?? null}
+          />
+        </div>
+
+        {/* 이 동산에서 부르는 애칭 (membership) */}
         {myMembership && (
           <div style={{ background: T.sand, borderRadius: 20, padding: '14px 16px', marginBottom: 24 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: T.wood600, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 10 }}>내 프로필</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: T.wood600, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 10 }}>이 동산에서 부르는 애칭</div>
             <EditDisplayName
               workspaceId={workspaceId}
               userId={user.id}

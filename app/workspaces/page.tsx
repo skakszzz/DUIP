@@ -1,5 +1,7 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient, getCachedUser } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
+import { kstNow } from '@/lib/dates';
+import { pickGreeting } from '@/lib/data/greetings';
 import WorkspacePickerClient from './workspace-picker-client';
 import type { Garden } from '@/components/workspace-picker';
 
@@ -35,20 +37,33 @@ function getSeasonLabel(): string {
 
 export default async function WorkspacesPage() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getCachedUser();
   if (!user) redirect('/login');
 
-  const now = new Date();
+  const now = kstNow();
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth() + 1;
+  const greeting = pickGreeting(now.getHours());
 
-  const { data: myMemberships } = await supabase
-    .from('memberships')
-    .select('workspace_id, display_name, avatar, color')
-    .eq('user_id', user.id);
+  const [{ data: myMemberships }, { data: profile }] = await Promise.all([
+    supabase
+      .from('memberships')
+      .select('workspace_id, display_name, avatar, color')
+      .eq('user_id', user.id),
+    supabase
+      .from('profiles')
+      .select('display_name')
+      .eq('id', user.id)
+      .maybeSingle(),
+  ]);
 
   const workspaceIds = myMemberships?.map((m) => m.workspace_id) ?? [];
-  const myName = myMemberships?.[0]?.display_name ?? user.email?.split('@')[0] ?? '';
+  const myName =
+    profile?.display_name ||
+    myMemberships?.[0]?.display_name ||
+    user.email?.split('@')[0] ||
+    '';
+  const needsDisplayName = !profile?.display_name;
 
   if (!workspaceIds.length) {
     return (
@@ -57,6 +72,9 @@ export default async function WorkspacesPage() {
         userName={myName}
         seasonLabel={getSeasonLabel()}
         userId={user.id}
+        needsDisplayName={needsDisplayName}
+        greetingTitle={greeting.title}
+        greetingSub={greeting.sub}
       />
     );
   }
@@ -120,6 +138,9 @@ export default async function WorkspacesPage() {
       userName={myName}
       seasonLabel={getSeasonLabel()}
       userId={user.id}
+      needsDisplayName={needsDisplayName}
+      greetingTitle={greeting.title}
+      greetingSub={greeting.sub}
     />
   );
 }

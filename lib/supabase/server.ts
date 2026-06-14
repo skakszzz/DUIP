@@ -1,5 +1,13 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { cache } from 'react';
+
+// 같은 요청 안에서 auth 왕복을 1회로 줄이는 캐시 헬퍼
+export const getCachedUser = cache(async () => {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  return user;
+});
 
 export async function createClient() {
   const cookieStore = await cookies();
