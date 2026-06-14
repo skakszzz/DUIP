@@ -1,7 +1,8 @@
 export default function GardenLoading() {
   return (
-    <div style={{ position: 'relative', minHeight: 'calc(100svh - 60px)', overflow: 'hidden', background: '#EAF1F0' }}>
+    <div style={{ position: 'relative', minHeight: 'calc(100svh - 60px)', overflow: 'hidden', background: '#EAF1F0', opacity: 0, animation: 'gl-fade 0.25s ease 0.2s forwards' }}>
       <style>{`
+        @keyframes gl-fade { to { opacity: 1 } }
         @keyframes gl-sway { 0%,100%{transform:rotate(-4deg)} 50%{transform:rotate(4deg)} }
         @keyframes gl-pulse { 0%,100%{opacity:.5} 50%{opacity:1} }
         @keyframes gl-drift { 0%{transform:translateX(0)} 100%{transform:translateX(18px)} }

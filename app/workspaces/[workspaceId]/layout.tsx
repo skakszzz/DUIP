@@ -30,10 +30,11 @@ export default async function WorkspaceLayout({ children, params }: Props) {
   return (
     <ErrorBoundary>
       <Suspense fallback={<TabSkeleton />}>
-        <div style={{ paddingBottom: 'calc(76px + env(safe-area-inset-bottom, 0px))' }}>
+        <div style={{ paddingBottom: 'calc(76px + env(safe-area-inset-bottom, 0px))', animation: 'contentIn 0.3s ease' }}>
           {children}
         </div>
       </Suspense>
+      <style>{`@keyframes contentIn { from { opacity:0; transform:translateY(4px) } to { opacity:1; transform:none } }`}</style>
       <TabBar workspaceId={workspaceId} />
     </ErrorBoundary>
   );
