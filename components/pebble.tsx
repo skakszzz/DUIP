@@ -1,6 +1,5 @@
 import type { ItemType } from '@/lib/types';
 import { TYPE_COLOR, TYPE_TINT } from '@/lib/item-style';
-import { TypeIcon } from '@/components/type-icon';
 
 export interface PebbleItem {
   title: string;
@@ -68,16 +67,30 @@ export function Pebble({
         onPointerLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'scale(1)'; }}
       >
         {completed ? (
-          // 완료 = 채운 초록 원 + 흰 체크
+          // 완료 = 채운 초록 원 + 흰 체크 (모든 타입 공통)
           <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
             <circle cx="12" cy="12" r="11" fill="#7BAE7E"/>
             <path d="M7.5 12.5l2.7 2.9L16.5 9" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
-        ) : (
-          // 미완료 = 씨앗 (비어 보이게)
+        ) : item.type === 'TODO' ? (
+          // 할 일 미완료 = 새싹 (탭하면 자란다는 메타포)
           <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="10" stroke="#C9BCA5" strokeWidth="1.8" fill="#FFFDF8"/>
-            <ellipse cx="12" cy="12.5" rx="2.5" ry="3.3" fill="#D8CDB8"/>
+            <circle cx="12" cy="12" r="11" fill="#EEF3E4" stroke="#C3D2AC" strokeWidth="1.4"/>
+            <path d="M12 17v-4" stroke="#8AA86B" strokeWidth="1.8" strokeLinecap="round"/>
+            <path d="M12 13c-2.2 0-3.6-1.4-3.9-3.4 2.2-.1 3.6 1.1 3.9 3.4Z" fill="#9CBE7A"/>
+            <path d="M12 13c2.2 0 3.6-1.4 3.9-3.4-2.2-.1-3.6 1.1-3.9 3.4Z" fill="#BBD79A"/>
+          </svg>
+        ) : item.type === 'WISH' ? (
+          // 소망 미완료 = 별 반짝
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="11" fill="#F7E4DD" stroke="#E2B6A8" strokeWidth="1.4"/>
+            <path d="M12 7.5l1.3 2.9 3.2.3-2.4 2.1.7 3.1L12 14.4 9.2 16l.7-3.1-2.4-2.1 3.2-.3z" fill="#D89684"/>
+          </svg>
+        ) : (
+          // 기타 미완료 = 다이아
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="11" fill="#EDE6F0" stroke="#C9BAD0" strokeWidth="1.4"/>
+            <path d="M12 8.5l3.5 3.5-3.5 3.5-3.5-3.5z" fill="#A892B0"/>
           </svg>
         )}
       </button>
