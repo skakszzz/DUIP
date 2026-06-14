@@ -150,7 +150,6 @@ export default function GardenView({ workspaceId, year, currentMonth, pots: init
   const [isDragActive, setIsDragActive] = useState(false);
   const isDragActiveRef = useRef(false);
   const draggingMonthRef = useRef<number | null>(null);
-  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const potsRef = useRef<MonthlyPot[]>(initialPots);
   useEffect(() => { potsRef.current = pots; }, [pots]);
 
@@ -172,12 +171,9 @@ export default function GardenView({ workspaceId, year, currentMonth, pots: init
   }
 
   function handlePotPointerDown(month: number, e: React.PointerEvent) {
+    if (!editMode) return; // 평상시엔 탭만 — 드래그는 위치 조정 모드에서만
     e.currentTarget.setPointerCapture(e.pointerId);
-    if (editMode) {
-      startDrag(month);
-    } else {
-      longPressTimer.current = setTimeout(() => startDrag(month), 500);
-    }
+    startDrag(month);
   }
 
   // 컨테이너 레벨 이동 — 빠른 움직임에도 손실 없음
@@ -192,7 +188,6 @@ export default function GardenView({ workspaceId, year, currentMonth, pots: init
   }
 
   function handleContainerPointerUp() {
-    if (longPressTimer.current) clearTimeout(longPressTimer.current);
     if (isDragActiveRef.current) endDrag();
   }
 
@@ -253,6 +248,8 @@ export default function GardenView({ workspaceId, year, currentMonth, pots: init
         position: 'relative', width: '100%', height: 'calc(100svh - 60px)',
         overflow: 'hidden', minHeight: 520, background: '#EAF1F0',
         touchAction: isDragActive ? 'none' : 'auto',
+        // layout의 공통 paddingBottom 상쇄 — garden은 전체화면 캔버스
+        marginBottom: 'calc(-76px - env(safe-area-inset-bottom, 0px))',
       }}
     >
       <style>{`
@@ -351,7 +348,7 @@ export default function GardenView({ workspaceId, year, currentMonth, pots: init
           {showTreeName && (
             <div style={{
               position: 'absolute', left: 0, right: 0,
-              bottom: Math.round(310 * 0.04),
+              bottom: Math.round(310 * 0.18),
               display: 'flex', justifyContent: 'center',
               fontSize: 11, fontWeight: 800, color: '#FBF6EE',
               background: 'rgba(20,8,2,0.45)', backdropFilter: 'blur(4px)',
@@ -463,7 +460,7 @@ export default function GardenView({ workspaceId, year, currentMonth, pots: init
 
       {/* 하단 정보 칩 */}
       <div style={{
-        position: 'absolute', bottom: 16, left: '50%', transform: 'translateX(-50%)',
+        position: 'absolute', bottom: 'calc(82px + env(safe-area-inset-bottom, 0px))', left: '50%', transform: 'translateX(-50%)',
         background: 'rgba(251,246,238,0.88)', backdropFilter: 'blur(8px)',
         borderRadius: 9999, padding: '8px 18px',
         boxShadow: '0 2px 12px rgba(74,46,22,0.12)',
