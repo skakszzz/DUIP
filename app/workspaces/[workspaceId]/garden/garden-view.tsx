@@ -57,6 +57,15 @@ const MONTH_KO = ['1월','2월','3월','4월','5월','6월','7월','8월','9월'
 
 const GROWTH_LABELS = ['', '흙', '새싹', '잎', '성숙기', '꽃핌'];
 
+const SHARE_BACKGROUNDS = [
+  { id: 'sunset', label: '노을', bg: 'linear-gradient(180deg,#1E0F3C 0%,#52204E 18%,#9E3D58 32%,#C85038 50%,#E88845 65%,#F5C070 80%,#FBE5B8 100%)', dark: false },
+  { id: 'dawn',   label: '새벽', bg: 'linear-gradient(180deg,#1A1A3E 0%,#3D3A7A 20%,#7A6BAE 40%,#BBAAD0 60%,#E8C8D8 78%,#FCEAE0 100%)', dark: false },
+  { id: 'spring', label: '봄',   bg: 'linear-gradient(180deg,#C4E0F5 0%,#E8D5EC 28%,#F5C2C2 52%,#F9DCDC 72%,#FBF0E0 100%)', dark: false },
+  { id: 'forest', label: '숲',   bg: 'linear-gradient(180deg,#0D2B1A 0%,#1B4A2A 25%,#2D6A40 50%,#4D8A58 72%,#7AB87A 100%)', dark: false },
+  { id: 'night',  label: '밤',   bg: 'linear-gradient(180deg,#020814 0%,#050E28 30%,#0A1A40 60%,#0D2254 100%)', dark: true },
+  { id: 'golden', label: '황금', bg: 'linear-gradient(180deg,#3D2000 0%,#7A3D00 20%,#C46A00 45%,#E8A000 65%,#F5C840 82%,#FDE990 100%)', dark: false },
+];
+
 // 화분 렌더링 (실제 이미지 + 이모지 폴백)
 function PotCell({ stage, plantId, soilType, size = 52, preferArtwork }: { stage: number; plantId: string | null; soilType: SoilType; size?: number; preferArtwork?: boolean }) {
   return (
@@ -128,6 +137,12 @@ export default function GardenView({ workspaceId, year, currentMonth, pots: init
   const [saving, setSaving] = useState(false);
   const [screenshotMode, setScreenshotMode] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const [showTreeName, setShowTreeName] = useState(true);
+
+  useEffect(() => {
+    const stored = localStorage.getItem('duip:showTreeName');
+    if (stored !== null) setShowTreeName(stored !== 'false');
+  }, []);
 
   // 드래그 — ref로 관리해 stale closure 완전 방지
   const containerRef = useRef<HTMLDivElement>(null);
@@ -321,7 +336,6 @@ export default function GardenView({ workspaceId, year, currentMonth, pots: init
           left: '50%', top: -48,
           transform: 'translateX(-50%)',
           background: 'none', border: 'none', cursor: 'pointer',
-          display: 'flex', flexDirection: 'column', alignItems: 'center',
           filter: 'drop-shadow(0 12px 32px rgba(0,0,0,0.35))',
           zIndex: 2,
         }}
@@ -332,14 +346,22 @@ export default function GardenView({ workspaceId, year, currentMonth, pots: init
           width:150, height:26, borderRadius:'50%',
           background:'rgba(58,42,18,0.20)', filter:'blur(7px)', zIndex:-1,
         }}/>
-        <TreeImage treeType={treeType} treeEmoji={treeEmoji} size={310} />
-        <div style={{
-          marginTop: 6, fontSize: 11, fontWeight: 800, color: '#FBF6EE',
-          background: 'rgba(20,8,2,0.45)', backdropFilter: 'blur(4px)',
-          padding: '3px 12px', borderRadius: 9999,
-          letterSpacing: '0.04em',
-        }}>
-          {treeName}
+        <div style={{ position: 'relative' }}>
+          <TreeImage treeType={treeType} treeEmoji={treeEmoji} size={310} />
+          {showTreeName && (
+            <div style={{
+              position: 'absolute', left: 0, right: 0,
+              bottom: Math.round(310 * 0.04),
+              display: 'flex', justifyContent: 'center',
+              fontSize: 11, fontWeight: 800, color: '#FBF6EE',
+              background: 'rgba(20,8,2,0.45)', backdropFilter: 'blur(4px)',
+              padding: '3px 12px', borderRadius: 9999,
+              letterSpacing: '0.04em', pointerEvents: 'none',
+              width: 'fit-content', margin: '0 auto',
+            }}>
+              {treeName}
+            </div>
+          )}
         </div>
       </button>
 
@@ -518,6 +540,11 @@ export default function GardenView({ workspaceId, year, currentMonth, pots: init
           bloomedPots={bloomedPots}
           currentMonth={currentMonth}
           pots={pots}
+          showTreeName={showTreeName}
+          onTreeNameToggle={(v) => {
+            setShowTreeName(v);
+            localStorage.setItem('duip:showTreeName', String(v));
+          }}
           onClose={() => setShowTreeSheet(false)}
         />
       )}
@@ -663,7 +690,7 @@ function MonthDetailSheet({ month, pot, completed, stat, onClose, onPickPlant }:
 }
 
 // ── H: 보호수 연간 상세 시트 ──────────────────────────────────────
-function TreeDetailSheet({ year, treeType, treeEmoji, treeName, totalCompleted, bloomedPots, currentMonth, pots, onClose }: {
+function TreeDetailSheet({ year, treeType, treeEmoji, treeName, totalCompleted, bloomedPots, currentMonth, pots, showTreeName, onTreeNameToggle, onClose }: {
   year: number;
   treeType: string;
   treeEmoji: string;
@@ -672,6 +699,8 @@ function TreeDetailSheet({ year, treeType, treeEmoji, treeName, totalCompleted, 
   bloomedPots: number;
   currentMonth: number;
   pots: MonthlyPot[];
+  showTreeName: boolean;
+  onTreeNameToggle: (v: boolean) => void;
   onClose: () => void;
 }) {
   const { dragProps, sheetStyle } = useDragSheet(onClose);
@@ -714,6 +743,29 @@ function TreeDetailSheet({ year, treeType, treeEmoji, treeName, totalCompleted, 
               <div style={{ fontSize: 10, fontWeight: 700, color: '#9A7553', letterSpacing: '0.04em', marginTop: 2 }}>{label}</div>
             </div>
           ))}
+        </div>
+
+        {/* 이름 표시 토글 */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#FFFCF7', borderRadius: 16, padding: '12px 16px', marginBottom: 16, boxShadow: '0 1px 2px rgba(74,46,22,0.05)' }}>
+          <div style={{ fontSize: 13.5, fontWeight: 700, color: '#2A1B0E' }}>이름 표시</div>
+          <button
+            onClick={() => onTreeNameToggle(!showTreeName)}
+            style={{
+              width: 44, height: 26, borderRadius: 13,
+              background: showTreeName ? '#5C3A1F' : '#D9C8AC',
+              border: 'none', cursor: 'pointer', position: 'relative',
+              transition: 'background 0.2s',
+            }}
+          >
+            <div style={{
+              position: 'absolute', top: 3,
+              left: showTreeName ? 21 : 3,
+              width: 20, height: 20, borderRadius: '50%',
+              background: '#FBF6EE',
+              transition: 'left 0.2s',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+            }} />
+          </button>
         </div>
 
         {/* 월별 요약 */}
@@ -871,14 +923,21 @@ function ScreenshotOverlay({ pots, treeType, year, currentMonth, onClose }: {
 }) {
   const treeEmoji = TREE_EMOJI[treeType] ?? '🌳';
   const treeName = TREE_NAME[treeType] ?? '보호수';
+  const [shareBg, setShareBg] = useState(() =>
+    (typeof window !== 'undefined' ? localStorage.getItem('duip:shareBg') : null) ?? 'sunset'
+  );
+
+  const bgPreset = SHARE_BACKGROUNDS.find(b => b.id === shareBg) ?? SHARE_BACKGROUNDS[0];
+  const isNight = bgPreset.dark;
 
   return (
     <div
       onClick={onClose}
       style={{
         position: 'fixed', inset: 0, zIndex: 9999,
-        background: 'linear-gradient(180deg, #1E0F3C 0%, #52204E 18%, #9E3D58 32%, #C85038 50%, #E88845 65%, #F5C070 80%, #FBE5B8 100%)',
+        background: bgPreset.bg,
         overflow: 'hidden', cursor: 'pointer',
+        display: 'flex', flexDirection: 'column',
       }}
     >
       {/* 안내 힌트 */}
@@ -888,7 +947,8 @@ function ScreenshotOverlay({ pots, treeType, year, currentMonth, onClose }: {
         display: 'flex', justifyContent: 'center', zIndex: 2,
       }}>
         <div style={{
-          background: 'rgba(20,8,2,0.50)', backdropFilter: 'blur(6px)',
+          background: isNight ? 'rgba(255,255,255,0.12)' : 'rgba(20,8,2,0.50)',
+          backdropFilter: 'blur(6px)',
           borderRadius: 9999, padding: '7px 20px',
           fontSize: 12, fontWeight: 700, color: 'rgba(251,246,238,0.92)',
           letterSpacing: '-0.01em',
@@ -951,16 +1011,51 @@ function ScreenshotOverlay({ pots, treeType, year, currentMonth, onClose }: {
         );
       })}
 
-      {/* 하단 브랜딩 */}
+      {/* 하단 브랜딩 (캡처 영역 안) */}
       <div style={{
-        position: 'absolute', bottom: 32, left: '50%', transform: 'translateX(-50%)',
-        background: 'rgba(251,246,238,0.90)', backdropFilter: 'blur(8px)',
+        position: 'absolute', bottom: 88, left: '50%', transform: 'translateX(-50%)',
+        background: isNight ? 'rgba(255,255,255,0.12)' : 'rgba(251,246,238,0.90)',
+        backdropFilter: 'blur(8px)',
         borderRadius: 9999, padding: '10px 24px',
-        fontSize: 13, fontWeight: 800, color: '#5C3A1F',
+        fontSize: 13, fontWeight: 800,
+        color: isNight ? '#E8D8FF' : '#5C3A1F',
         whiteSpace: 'nowrap', zIndex: 4,
-        boxShadow: '0 2px 12px rgba(74,46,22,0.12)',
+        boxShadow: isNight ? '0 2px 12px rgba(0,0,0,0.4)' : '0 2px 12px rgba(74,46,22,0.12)',
       }}>
         🌿 두잎 · {year}년 동산
+      </div>
+
+      {/* 배경 선택 스와치 (캡처 영역 밖 — 화면 맨 아래) */}
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          position: 'absolute', bottom: 0, left: 0, right: 0,
+          paddingBottom: 'calc(8px + env(safe-area-inset-bottom))',
+          paddingTop: 10,
+          background: 'rgba(10,5,2,0.55)', backdropFilter: 'blur(10px)',
+          display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 10,
+          zIndex: 10,
+        }}
+      >
+        {SHARE_BACKGROUNDS.map((b) => (
+          <button
+            key={b.id}
+            onClick={() => {
+              setShareBg(b.id);
+              localStorage.setItem('duip:shareBg', b.id);
+            }}
+            title={b.label}
+            style={{
+              width: 28, height: 28, borderRadius: '50%',
+              background: b.bg, border: 'none', cursor: 'pointer',
+              boxShadow: shareBg === b.id
+                ? '0 0 0 2px #FBF6EE, 0 0 0 4px rgba(251,246,238,0.5)'
+                : '0 0 0 1.5px rgba(255,255,255,0.25)',
+              transition: 'box-shadow 0.15s',
+              flexShrink: 0,
+            }}
+          />
+        ))}
       </div>
     </div>
   );

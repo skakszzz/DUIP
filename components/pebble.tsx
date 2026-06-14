@@ -58,19 +58,27 @@ export function Pebble({
         style={{
           flexShrink: 0,
           width: 36, height: 36, borderRadius: 9999,
-          background: completed ? color : tint,
+          background: 'none',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           border: 'none', cursor: 'pointer',
-          boxShadow: completed ? 'none' : `inset 0 0 0 2px ${color}28`,
-          transition: 'all 0.15s',
+          transition: 'transform 0.15s',
         }}
+        onPointerDown={e => { (e.currentTarget as HTMLElement).style.transform = 'scale(0.9)'; }}
+        onPointerUp={e => { (e.currentTarget as HTMLElement).style.transform = 'scale(1)'; }}
+        onPointerLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'scale(1)'; }}
       >
         {completed ? (
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round">
-            <path d="M5 12.5 10 17.5 19 7.5"/>
+          // 완료 = 채운 초록 원 + 흰 체크
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="11" fill="#7BAE7E"/>
+            <path d="M7.5 12.5l2.7 2.9L16.5 9" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         ) : (
-          <TypeIcon type={item.type} size={16} color={color}/>
+          // 미완료 = 씨앗 (비어 보이게)
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" stroke="#C9BCA5" strokeWidth="1.8" fill="#FFFDF8"/>
+            <ellipse cx="12" cy="12.5" rx="2.5" ry="3.3" fill="#D8CDB8"/>
+          </svg>
         )}
       </button>
 
