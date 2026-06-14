@@ -348,7 +348,7 @@ export default function GardenView({ workspaceId, year, currentMonth, pots: init
           {showTreeName && (
             <div style={{
               position: 'absolute', left: 0, right: 0,
-              bottom: Math.round(310 * 0.18),
+              bottom: Math.round(310 * 0.28),
               display: 'flex', justifyContent: 'center',
               fontSize: 11, fontWeight: 800, color: '#FBF6EE',
               background: 'rgba(20,8,2,0.45)', backdropFilter: 'blur(4px)',
