@@ -193,6 +193,7 @@ function NewGardenCard({ onNew }: { onNew?: () => void }) {
 export interface WorkspacePickerProps {
   userName?: string;
   seasonLabel?: string;
+  greetingTitle?: string;
   greetingSub?: string;
   gardens: Garden[];
   maxGardens?: number;
@@ -203,7 +204,7 @@ export interface WorkspacePickerProps {
 }
 
 export function WorkspacePicker({
-  userName = '', seasonLabel, greetingSub,
+  userName = '', seasonLabel, greetingTitle, greetingSub,
   gardens, maxGardens = 3, onOpen, onNew, onSettings, onJoinCode,
 }: WorkspacePickerProps) {
   const canAdd = gardens.length < maxGardens;
@@ -243,7 +244,7 @@ export function WorkspacePicker({
         <div style={{ padding: '26px 24px 22px' }}>
           {seasonLabel && <div style={{ fontSize: 13, color: T.wood600, fontWeight: 700, fontFamily: T.serif, letterSpacing: '0.02em' }}>{seasonLabel}</div>}
           <h1 style={{ fontSize: 27, fontWeight: 400, color: T.ink, letterSpacing: '-0.02em', lineHeight: 1.38, margin: '8px 0 0', fontFamily: T.serif }}>
-            {userName ? `${userName}님,` : '반가워요,'}<br />다시 만나 반가워요
+            {userName ? `${userName}님,` : '반가워요,'}<br />{greetingTitle ?? '다시 만나 반가워요'}
           </h1>
           <p style={{ fontSize: 13.5, color: T.inkMute, lineHeight: 1.6, margin: '10px 0 0', fontFamily: T.serif }}>{sub}</p>
         </div>

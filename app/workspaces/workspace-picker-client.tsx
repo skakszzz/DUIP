@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { WorkspacePicker, type Garden } from '@/components/workspace-picker';
@@ -26,11 +26,19 @@ interface Props {
   userName: string;
   seasonLabel: string;
   userId: string;
+  needsDisplayName?: boolean;
+  greetingTitle?: string;
+  greetingSub?: string;
 }
 
-export default function WorkspacePickerClient({ gardens, userName, seasonLabel, userId }: Props) {
+export default function WorkspacePickerClient({ gardens, userName, seasonLabel, userId, needsDisplayName, greetingTitle, greetingSub }: Props) {
   const router = useRouter();
   const [showJoin, setShowJoin] = useState(false);
+  const [nameInput, setNameInput] = useState('');
+  const [nameSaving, setNameSaving] = useState(false);
+  const [nameErr, setNameErr] = useState('');
+  const [nameDone, setNameDone] = useState(false);
+  const imeRef = useRef(false);
   const [codeInput, setCodeInput] = useState('');
   const [checking, setChecking] = useState(false);
   const [codeErr, setCodeErr] = useState('');
@@ -40,6 +48,19 @@ export default function WorkspacePickerClient({ gardens, userName, seasonLabel, 
   const [color, setColor] = useState('#B86F4B');
   const [joining, setJoining] = useState(false);
   const [joinErr, setJoinErr] = useState('');
+
+  const handleSaveName = useCallback(async () => {
+    const name = nameInput.trim();
+    if (!name) return;
+    setNameSaving(true); setNameErr('');
+    const supabase = createClient();
+    const { error } = await supabase
+      .from('profiles')
+      .upsert({ id: userId, display_name: name }, { onConflict: 'id' });
+    if (error) { setNameErr('저장에 실패했어요. 다시 시도해주세요'); setNameSaving(false); return; }
+    setNameDone(true);
+    router.refresh();
+  }, [nameInput, userId, router]);
 
   function closeSheet() {
     setShowJoin(false);
@@ -90,17 +111,72 @@ export default function WorkspacePickerClient({ gardens, userName, seasonLabel, 
     router.push(`/workspaces/${data.workspace_id}/today`);
   }
 
+  const showNameCard = needsDisplayName && !nameDone;
+
   return (
     <>
       <WorkspacePicker
         gardens={gardens}
         userName={userName}
         seasonLabel={seasonLabel}
+        greetingTitle={greetingTitle}
+        greetingSub={greetingSub}
         maxGardens={3}
         onOpen={(id) => router.push(`/workspaces/${id}/today`)}
         onNew={() => router.push('/workspaces/new')}
         onJoinCode={() => setShowJoin(true)}
       />
+
+      {showNameCard && (
+        <div style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 90,
+          display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+        }}>
+          <div style={{
+            width: '100%', maxWidth: 440,
+            background: '#FFFCF7', borderRadius: '24px 24px 0 0',
+            padding: `20px 20px calc(24px + env(safe-area-inset-bottom))`,
+            boxShadow: '0 -4px 24px rgba(42,27,14,0.12)',
+          }}>
+            <div style={{ fontSize: 17, fontWeight: 800, color: T.ink, marginBottom: 6, letterSpacing: '-0.02em' }}>
+              내 이름을 알려주세요 🌱
+            </div>
+            <div style={{ fontSize: 13, color: T.inkMute, marginBottom: 14, lineHeight: 1.5 }}>
+              앱에서 불릴 이름이에요. 언제든 설정에서 바꿀 수 있어요.
+            </div>
+            <input
+              value={nameInput}
+              onChange={(e) => setNameInput(e.target.value)}
+              onCompositionStart={() => { imeRef.current = true; }}
+              onCompositionEnd={() => { imeRef.current = false; }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !imeRef.current) handleSaveName();
+              }}
+              placeholder="이름 또는 애칭"
+              style={{
+                display: 'block', width: '100%', boxSizing: 'border-box',
+                background: '#F4E8D6', border: `1.5px solid ${nameErr ? T.err : T.bisque}`,
+                borderRadius: 14, padding: '13px 16px',
+                fontSize: 16, color: T.ink, outline: 'none', fontFamily: 'inherit',
+                marginBottom: 8,
+              }}
+            />
+            {nameErr && <div style={{ fontSize: 13, color: T.err, marginBottom: 8 }}>{nameErr}</div>}
+            <button
+              onClick={handleSaveName}
+              disabled={nameSaving || !nameInput.trim()}
+              style={{
+                width: '100%', height: 48, borderRadius: 9999, border: 'none',
+                background: T.wood800, color: '#FBF6EE',
+                fontSize: 15, fontWeight: 700, cursor: 'pointer',
+                opacity: (nameSaving || !nameInput.trim()) ? 0.45 : 1,
+              }}
+            >
+              {nameSaving ? '저장 중…' : '저장하기'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {showJoin && (
         <div
