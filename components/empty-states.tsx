@@ -67,7 +67,7 @@ export function EmptyCalendar() {
 export function EmptyGarden({ month = 1 }: { month?: number }) {
   return (
     <div style={{
-      position: 'absolute', top: '60%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 9,
+      position: 'absolute', top: '40%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 9,
       display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 2,
       padding: '10px 20px', borderRadius: 20, whiteSpace: 'nowrap',      background: 'rgba(255,253,247,0.82)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
       boxShadow: '0 6px 20px rgba(74,46,22,0.14)',

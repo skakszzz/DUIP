@@ -112,18 +112,18 @@ function TreeImage({ treeType, treeEmoji, size }: { treeType: string; treeEmoji:
 // 화분 위치 — left(%), bottomPct(부모 height의 %), zIndex
 // 바닥 앵커: bottom% + translateX(-50%) → 기기 높이 무관하게 언덕 위에 고정
 const POT_POSITIONS: { left: number; bottomPct: number; zIndex: number }[] = [
-  { left: 16, bottomPct: 10.5, zIndex: 5 }, // 1월
-  { left: 84, bottomPct: 10.0, zIndex: 5 }, // 2월
-  { left: 33, bottomPct: 16.5, zIndex: 4 }, // 3월
-  { left: 67, bottomPct: 17.0, zIndex: 4 }, // 4월
-  { left: 50, bottomPct: 22.0, zIndex: 3 }, // 5월
-  { left:  8, bottomPct: 16.0, zIndex: 4 }, // 6월
-  { left: 92, bottomPct: 16.0, zIndex: 4 }, // 7월
-  { left: 25, bottomPct: 22.5, zIndex: 3 }, // 8월
-  { left: 75, bottomPct: 22.5, zIndex: 3 }, // 9월
-  { left: 42, bottomPct: 27.0, zIndex: 2 }, // 10월
-  { left: 58, bottomPct: 27.0, zIndex: 2 }, // 11월
-  { left: 50, bottomPct: 31.0, zIndex: 1 }, // 12월
+  { left: 16, bottomPct: 17.0, zIndex: 5 }, // 1월
+  { left: 84, bottomPct: 16.5, zIndex: 5 }, // 2월
+  { left: 33, bottomPct: 22.5, zIndex: 4 }, // 3월
+  { left: 67, bottomPct: 23.0, zIndex: 4 }, // 4월
+  { left: 50, bottomPct: 28.0, zIndex: 3 }, // 5월
+  { left:  8, bottomPct: 22.0, zIndex: 4 }, // 6월
+  { left: 92, bottomPct: 22.0, zIndex: 4 }, // 7월
+  { left: 25, bottomPct: 28.5, zIndex: 3 }, // 8월
+  { left: 75, bottomPct: 28.5, zIndex: 3 }, // 9월
+  { left: 42, bottomPct: 33.0, zIndex: 2 }, // 10월
+  { left: 58, bottomPct: 33.0, zIndex: 2 }, // 11월
+  { left: 50, bottomPct: 37.0, zIndex: 1 }, // 12월
 ];
 
 export default function GardenView({ workspaceId, year, currentMonth, pots: initialPots, monthStats, treeType, workspaceName }: Props) {
@@ -182,7 +182,7 @@ export default function GardenView({ workspaceId, year, currentMonth, pots: init
     e.preventDefault();
     const rect = containerRef.current.getBoundingClientRect();
     const x = Math.min(96, Math.max(4, ((e.clientX - rect.left) / rect.width) * 100));
-    const y = Math.min(58, Math.max(5, ((rect.bottom - e.clientY) / rect.height) * 100));
+    const y = Math.min(58, Math.max(16, ((rect.bottom - e.clientY) / rect.height) * 100));
     const m = draggingMonthRef.current;
     setPots(prev => prev.map(p => p.month === m ? { ...p, pos_x: x, pos_y: y } : p));
   }
@@ -245,7 +245,7 @@ export default function GardenView({ workspaceId, year, currentMonth, pots: init
       onPointerUp={handleContainerPointerUp}
       onPointerCancel={handleContainerPointerUp}
       style={{
-        position: 'relative', width: '100%', height: 'calc(100svh - 60px)',
+        position: 'relative', width: '100%', height: 'calc(100svh - 70px - env(safe-area-inset-bottom, 0px))',
         overflow: 'hidden', minHeight: 520, background: '#EAF1F0',
         touchAction: isDragActive ? 'none' : 'auto',
         // layout의 공통 paddingBottom 상쇄 — garden은 전체화면 캔버스
@@ -460,7 +460,7 @@ export default function GardenView({ workspaceId, year, currentMonth, pots: init
 
       {/* 하단 정보 칩 */}
       <div style={{
-        position: 'absolute', bottom: 'calc(82px + env(safe-area-inset-bottom, 0px))', left: '50%', transform: 'translateX(-50%)',
+        position: 'absolute', bottom: 12, left: '50%', transform: 'translateX(-50%)',
         background: 'rgba(251,246,238,0.88)', backdropFilter: 'blur(8px)',
         borderRadius: 9999, padding: '8px 18px',
         boxShadow: '0 2px 12px rgba(74,46,22,0.12)',
@@ -927,6 +927,12 @@ function ScreenshotOverlay({ pots, treeType, year, currentMonth, onClose }: {
   const bgPreset = SHARE_BACKGROUNDS.find(b => b.id === shareBg) ?? SHARE_BACKGROUNDS[0];
   const isNight = bgPreset.dark;
 
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, []);
+
   return (
     <div
       onClick={onClose}
@@ -935,8 +941,10 @@ function ScreenshotOverlay({ pots, treeType, year, currentMonth, onClose }: {
         background: bgPreset.bg,
         overflow: 'hidden', cursor: 'pointer',
         display: 'flex', flexDirection: 'column',
+        animation: 'overlayIn 0.2s ease',
       }}
     >
+      <style>{`@keyframes overlayIn { from { opacity: 0 } to { opacity: 1 } }`}</style>
       {/* 안내 힌트 */}
       <div style={{
         position: 'absolute', top: 0, left: 0, right: 0,
