@@ -4,8 +4,8 @@
 //   <PlantArt id="monstera" stage={3} size={120} />   // id = plants.ts의 Plant.id
 //
 // 이 파일은 생성된 일러스트 코드라 타입 체크를 끕니다(@ts-nocheck).
-// @ts-nocheck
 /* eslint-disable */
+// @ts-nocheck
 import React from 'react';
 import { PLANT_CATALOG } from '@/lib/data/plant-catalog';
 

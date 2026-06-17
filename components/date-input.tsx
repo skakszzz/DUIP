@@ -16,6 +16,7 @@ export default function DateInput({ value, onChange, inputStyle }: Props) {
   const dRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!value) { setY(''); setM(''); setD(''); }
   }, [value]);
 

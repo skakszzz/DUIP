@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import {
   MEMO_TINTS, TINT_ORDER, StrokesSvg, MemoAvatars, blockAuthors,
-  type MemoRow, type MemoMember, type MemoBlock, type CheckItem, type Stroke, type TintKey,
+  type MemoRow, type MemoMember, type MemoBlock, type CheckItem, type TintKey,
 } from '@/components/memo-shared';
 import MemoDrawCanvas from './memo-draw-canvas';
 
@@ -45,7 +45,6 @@ export default function MemoDetailView({ workspaceId, userId, members, initialMe
     document.addEventListener('mousedown', handleOutside);
     return () => document.removeEventListener('mousedown', handleOutside);
   }, [menuOpen]);
-  const tmeta = MEMO_TINTS[tint] ?? MEMO_TINTS.paper;
   const first = useRef(true);
 
   // ── 디바운스 자동 저장 ──

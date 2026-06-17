@@ -107,9 +107,9 @@ export function PlantGrow({
           {parts.map((p, i) => (
             <div key={i} className="pg-part" style={{
               position: 'absolute', left: '50%', top: '48%',
-              ['--tx' as any]: `${p.tx}px`, ['--ty' as any]: `${p.ty}px`, ['--rot' as any]: `${p.rot}deg`,
+              '--tx': `${p.tx}px`, '--ty': `${p.ty}px`, '--rot': `${p.rot}deg`,
               animationDelay: `${p.delay}ms`,
-            }}>
+            } as React.CSSProperties}>
               {p.bloom
                 ? <svg width={p.r * 2} height={p.r * 2} viewBox="0 0 14 14"><path d="M13 11C7 12 2 8 2 2 8 1 13 5 13 11Z" fill={p.c} /></svg>
                 : <div style={{ width: p.r, height: p.r, borderRadius: '50%', background: p.c }} />}

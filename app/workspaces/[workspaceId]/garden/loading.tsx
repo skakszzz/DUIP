@@ -3,7 +3,7 @@ export default function Loading() {
     <div
       style={{
         minHeight: '100svh',
-        background: '#EAF1F0',
+        background: '#FBF6EE',
         opacity: 0,
         animation: 'duipLoadFade 0.3s ease 0.15s forwards',
       }}

@@ -65,7 +65,7 @@ export default function LeaveWorkspaceButton({ workspaceId, workspaceName, userI
               동산을 나갈까요?
             </div>
             <div style={{ fontSize: 13.5, color: T.inkMute, textAlign: 'center', lineHeight: 1.6, marginBottom: 28 }}>
-              <b style={{ color: T.ink }}>"{workspaceName}"</b>에서 나가면<br />
+              <b style={{ color: T.ink }}>{'"'}{workspaceName}{'"'}</b>에서 나가면<br />
               더 이상 이 동산을 볼 수 없어요.<br />
               다시 참가하려면 초대 코드가 필요해요.
             </div>

@@ -34,9 +34,7 @@ export default async function JoinPage({ params }: Props) {
   return (
     <JoinForm
       token={token}
-      workspaceId={inviteInfo[0].workspace_id}
       workspaceName={inviteInfo[0].workspace_name ?? '동산'}
-      userId={user.id}
     />
   );
 }

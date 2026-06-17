@@ -37,13 +37,11 @@ interface MonthItem {
 }
 
 interface Props {
-  workspaceId: string;
   year: number;
   currentMonth: number;
   pots: MonthlyPot[];
   monthStats: MonthStat[];
   treeType: string;
-  workspaceName: string;
 }
 
 const TREE_EMOJI: Record<string, string> = {
@@ -126,7 +124,7 @@ const POT_POSITIONS: { left: number; bottomPct: number; zIndex: number }[] = [
   { left: 50, bottomPct: 37.0, zIndex: 1 }, // 12월
 ];
 
-export default function GardenView({ workspaceId, year, currentMonth, pots: initialPots, monthStats, treeType, workspaceName }: Props) {
+export default function GardenView({ year, currentMonth, pots: initialPots, monthStats, treeType }: Props) {
   const router = useRouter();
   const [pots, setPots] = useState<MonthlyPot[]>(initialPots);
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
@@ -137,12 +135,10 @@ export default function GardenView({ workspaceId, year, currentMonth, pots: init
   const [saving, setSaving] = useState(false);
   const [screenshotMode, setScreenshotMode] = useState(false);
   const [editMode, setEditMode] = useState(false);
-  const [showTreeName, setShowTreeName] = useState(true);
-
-  useEffect(() => {
-    const stored = localStorage.getItem('duip:showTreeName');
-    if (stored !== null) setShowTreeName(stored !== 'false');
-  }, []);
+  const [showTreeName, setShowTreeName] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    return localStorage.getItem('duip:showTreeName') !== 'false';
+  });
 
   // 드래그 — ref로 관리해 stale closure 완전 방지
   const containerRef = useRef<HTMLDivElement>(null);
@@ -245,11 +241,11 @@ export default function GardenView({ workspaceId, year, currentMonth, pots: init
       onPointerUp={handleContainerPointerUp}
       onPointerCancel={handleContainerPointerUp}
       style={{
-        position: 'relative', width: '100%', height: 'calc(100svh - 70px - env(safe-area-inset-bottom, 0px))',
+        position: 'relative', width: '100%', height: 'calc(100svh - var(--tabbar-h))',
         overflow: 'hidden', minHeight: 520, background: '#EAF1F0',
         touchAction: isDragActive ? 'none' : 'auto',
         // layout의 공통 paddingBottom 상쇄 — garden은 전체화면 캔버스
-        marginBottom: 'calc(-76px - env(safe-area-inset-bottom, 0px))',
+        marginBottom: 'calc(-1 * var(--tabbar-h))',
       }}
     >
       <style>{`

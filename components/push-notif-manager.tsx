@@ -11,6 +11,7 @@ export default function PushNotifManager({ workspaceId }: Props) {
 
   useEffect(() => {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setStatus('unsupported');
       return;
     }

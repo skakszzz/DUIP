@@ -250,6 +250,7 @@ export default function TodayView({ workspaceId, userId, initialItems, members, 
   const [treeType, setTreeType] = useState(initialTreeType);
   const [bannerDismissed, setBannerDismissed] = useState(false);
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (localStorage.getItem(`invite_banner_dismissed_${workspaceId}`)) setBannerDismissed(true);
   }, [workspaceId]);
 

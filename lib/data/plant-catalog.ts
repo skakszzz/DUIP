@@ -9,6 +9,7 @@ export type PlantForm = 'rosette' | 'trailing' | 'leafy' | 'stalk' | 'woody' | '
 // 각 form이 받는 opts는 plant-forms.jsx 참고.
 // 색은 plants.ts의 imagePrompts(stage5) 묘사에서 도출.
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const PLANT_CATALOG: Record<string, any> = {
   // ─────────── 다육이 (15) ───────────
   echeveria:        { form: 'rosette', shape: 'round',   leaf: '#9DBE9E', leaf2: '#B9D2B3', tip: '#E0A6AE' },

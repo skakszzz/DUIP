@@ -91,6 +91,7 @@
 }
 
 :root {
+  --tabbar-h: calc(73px + env(safe-area-inset-bottom, 0px));
   --background: #FBF6EE;
   --foreground: #2A1B0E;
   --card: #FFFCF7;

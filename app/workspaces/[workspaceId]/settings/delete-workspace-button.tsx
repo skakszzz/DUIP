@@ -75,7 +75,7 @@ export default function DeleteWorkspaceButton({ workspaceId, workspaceName }: { 
               정말 삭제할까요?
             </div>
             <div style={{ fontSize: 13.5, color: T.inkMute, textAlign: 'center', lineHeight: 1.6, marginBottom: 28 }}>
-              <b style={{ color: T.ink }}>"{workspaceName}"</b> 동산과<br />
+              <b style={{ color: T.ink }}>{'"'}{workspaceName}{'"'}</b> 동산과<br />
               모든 할일·소망·메모·화분 기록이<br />
               영구적으로 삭제돼요. 되돌릴 수 없어요.
             </div>

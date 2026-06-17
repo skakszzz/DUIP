@@ -12,12 +12,10 @@ const COLOR_OPTIONS = [
 
 interface Props {
   token: string;
-  workspaceId: string;
   workspaceName: string;
-  userId: string;
 }
 
-export default function JoinForm({ token, workspaceId, workspaceName, userId }: Props) {
+export default function JoinForm({ token, workspaceName }: Props) {
   const router = useRouter();
   const [displayName, setDisplayName] = useState('');
   const [avatar, setAvatar] = useState('🌸');
