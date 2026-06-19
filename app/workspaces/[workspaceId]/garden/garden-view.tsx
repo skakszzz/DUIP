@@ -455,7 +455,7 @@ export default function GardenView({ year, currentMonth, pots: initialPots, mont
 
       {/* 하단 정보 칩 */}
       <div style={{
-        position: 'absolute', bottom: 12, left: '50%', transform: 'translateX(-50%)',
+        position: 'absolute', bottom: 'calc(var(--tabbar-h) + 12px)', left: '50%', transform: 'translateX(-50%)',
         background: 'rgba(251,246,238,0.88)', backdropFilter: 'blur(8px)',
         borderRadius: 9999, padding: '8px 18px',
         boxShadow: '0 2px 12px rgba(74,46,22,0.12)',
