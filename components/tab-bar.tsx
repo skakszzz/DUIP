@@ -73,7 +73,7 @@ export default function TabBar({ workspaceId }: Props) {
   return (
     <div
       className="fixed bottom-0 left-0 right-0 z-50"
-      style={{ background: 'linear-gradient(180deg, rgba(251,246,238,0) 0%, rgba(251,246,238,0.97) 28%, #FBF6EE 100%), #FBF6EE' }}
+      style={{ background: 'linear-gradient(180deg, rgba(251,246,238,0) 0%, rgba(251,246,238,0.97) 28%, #FBF6EE 100%)' }}
     >
       <div
         className="max-w-md mx-auto"

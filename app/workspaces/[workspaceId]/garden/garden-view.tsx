@@ -242,7 +242,7 @@ export default function GardenView({ year, currentMonth, pots: initialPots, mont
       onPointerCancel={handleContainerPointerUp}
       style={{
         position: 'fixed',
-        top: 0, left: 0, right: 0, bottom: 'var(--tabbar-h)',
+        top: 0, left: 0, right: 0, bottom: 0,
         overflow: 'hidden', background: '#EAF1F0',
         touchAction: isDragActive ? 'none' : 'auto',
       }}
