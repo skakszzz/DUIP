@@ -376,17 +376,18 @@ export default function TodayView({ workspaceId, userId, initialItems, members, 
     const next = !isCompletedToday(item, today);
 
     if (!item.is_recurring) {
-      setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, is_completed: next } : i)));
+      const nowIso = next ? new Date().toISOString() : null;
+      setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, is_completed: next, completed_at: nowIso } : i)));
       setMonthlyPotState((prev) =>
         prev ? { ...prev, growth_points: Math.max(0, (prev.growth_points ?? 0) + (next ? 1 : -1)) } : prev
       );
       const { error } = await supabase.from('items').update({
         is_completed: next,
-        completed_at: next ? new Date().toISOString() : null,
+        completed_at: nowIso,
         completed_by: next ? userId : null,
       }).eq('id', item.id);
       if (error) {
-        setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, is_completed: !next } : i)));
+        setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, is_completed: !next, completed_at: item.completed_at } : i)));
         setMonthlyPotState((prev) =>
           prev ? { ...prev, growth_points: Math.max(0, (prev.growth_points ?? 0) + (next ? -1 : 1)) } : prev
         );
