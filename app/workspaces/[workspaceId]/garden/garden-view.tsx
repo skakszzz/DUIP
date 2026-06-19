@@ -241,11 +241,10 @@ export default function GardenView({ year, currentMonth, pots: initialPots, mont
       onPointerUp={handleContainerPointerUp}
       onPointerCancel={handleContainerPointerUp}
       style={{
-        position: 'relative', width: '100%', height: 'calc(100svh - var(--tabbar-h))',
-        overflow: 'hidden', minHeight: 520, background: '#EAF1F0',
+        position: 'fixed',
+        top: 0, left: 0, right: 0, bottom: 'var(--tabbar-h)',
+        overflow: 'hidden', background: '#EAF1F0',
         touchAction: isDragActive ? 'none' : 'auto',
-        // layout의 공통 paddingBottom 상쇄 — garden은 전체화면 캔버스
-        marginBottom: 'calc(-1 * var(--tabbar-h))',
       }}
     >
       <style>{`
