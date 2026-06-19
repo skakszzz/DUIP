@@ -453,6 +453,14 @@ export default function GardenView({ year, currentMonth, pots: initialPots, mont
         <EmptyGarden month={currentMonth} />
       )}
 
+      {/* 하단 크림 페이드 — 탭바와 시각적으로 연결 */}
+      <div style={{
+        position: 'absolute', left: 0, right: 0, bottom: 0,
+        height: 'calc(var(--tabbar-h) + 30px)',
+        background: 'linear-gradient(to bottom, transparent, #FBF6EE)',
+        pointerEvents: 'none', zIndex: 3,
+      }} />
+
       {/* 하단 정보 칩 */}
       <div style={{
         position: 'absolute', bottom: 'calc(var(--tabbar-h) + 12px)', left: '50%', transform: 'translateX(-50%)',
