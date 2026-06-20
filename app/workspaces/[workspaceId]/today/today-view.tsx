@@ -225,6 +225,52 @@ function MonthlyPlantCard({
   );
 }
 
+// ── [임시 측정] 탭바 위치 진단 오버레이 — 확인 후 삭제 ──────────────
+function MeasureOverlay() {
+  const [info, setInfo] = useState('measuring...');
+  useEffect(() => {
+    function measure() {
+      const els = Array.from(document.querySelectorAll('div'));
+      const bar = els.find(el => {
+        const cls = el.className;
+        return typeof cls === 'string' && cls.includes('bottom-0') && cls.includes('z-50');
+      });
+      if (!bar) { setInfo('tabbar not found'); return; }
+      const r = bar.getBoundingClientRect();
+      const vv = window.visualViewport;
+      setInfo([
+        '[ 홈 탭 ]',
+        `bar.top      = ${r.top.toFixed(1)}`,
+        `bar.bottom   = ${r.bottom.toFixed(1)}`,
+        `bar.height   = ${r.height.toFixed(1)}`,
+        `innerHeight  = ${window.innerHeight}`,
+        `vv.height    = ${vv ? vv.height.toFixed(1) : 'n/a'}`,
+        `vv.offsetTop = ${vv ? vv.offsetTop.toFixed(1) : 'n/a'}`,
+        `doc.scrollH  = ${document.documentElement.scrollHeight}`,
+        `body.offsetH = ${document.body.offsetHeight}`,
+      ].join('\n'));
+    }
+    measure();
+    window.addEventListener('resize', measure);
+    window.visualViewport?.addEventListener('resize', measure);
+    return () => {
+      window.removeEventListener('resize', measure);
+      window.visualViewport?.removeEventListener('resize', measure);
+    };
+  }, []);
+  return (
+    <div style={{
+      position: 'fixed', top: 60, left: 12, right: 12, zIndex: 9999,
+      background: 'rgba(0,0,0,0.88)', color: '#00ff88',
+      fontFamily: 'monospace', fontSize: 12, lineHeight: 1.8,
+      padding: '10px 14px', borderRadius: 10, whiteSpace: 'pre',
+      pointerEvents: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+    }}>
+      {info}
+    </div>
+  );
+}
+
 // ── 메인 컴포넌트 ────────────────────────────────────────────────
 export default function TodayView({ workspaceId, userId, initialItems, members, workspaceName, serverToday, monthlyPot, treeType: initialTreeType, treeSelectedYear, currentUser }: Props) {
   const { showToast } = useToast();
@@ -742,6 +788,9 @@ export default function TodayView({ workspaceId, userId, initialItems, members, 
           }}
         />
       )}
+
+      {/* [임시 측정] 탭바 위치 진단 */}
+      <MeasureOverlay />
     </div>
   );
 }

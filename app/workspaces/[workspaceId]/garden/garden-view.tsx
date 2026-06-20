@@ -81,6 +81,52 @@ function PotCell({ stage, plantId, soilType, size = 52, preferArtwork }: { stage
 
 const VALID_TREE_TYPES = ['cherry', 'olive', 'ginkgo', 'pine', 'maple'];
 
+// ── [임시 측정] 탭바 위치 진단 오버레이 — 확인 후 삭제 ──────────────
+function MeasureOverlay() {
+  const [info, setInfo] = useState('measuring...');
+  useEffect(() => {
+    function measure() {
+      const els = Array.from(document.querySelectorAll('div'));
+      const bar = els.find(el => {
+        const cls = el.className;
+        return typeof cls === 'string' && cls.includes('bottom-0') && cls.includes('z-50');
+      });
+      if (!bar) { setInfo('tabbar not found'); return; }
+      const r = bar.getBoundingClientRect();
+      const vv = window.visualViewport;
+      setInfo([
+        '[ 동산 탭 ]',
+        `bar.top      = ${r.top.toFixed(1)}`,
+        `bar.bottom   = ${r.bottom.toFixed(1)}`,
+        `bar.height   = ${r.height.toFixed(1)}`,
+        `innerHeight  = ${window.innerHeight}`,
+        `vv.height    = ${vv ? vv.height.toFixed(1) : 'n/a'}`,
+        `vv.offsetTop = ${vv ? vv.offsetTop.toFixed(1) : 'n/a'}`,
+        `doc.scrollH  = ${document.documentElement.scrollHeight}`,
+        `body.offsetH = ${document.body.offsetHeight}`,
+      ].join('\n'));
+    }
+    measure();
+    window.addEventListener('resize', measure);
+    window.visualViewport?.addEventListener('resize', measure);
+    return () => {
+      window.removeEventListener('resize', measure);
+      window.visualViewport?.removeEventListener('resize', measure);
+    };
+  }, []);
+  return (
+    <div style={{
+      position: 'fixed', top: 60, left: 12, right: 12, zIndex: 9999,
+      background: 'rgba(0,0,0,0.88)', color: '#00ff88',
+      fontFamily: 'monospace', fontSize: 12, lineHeight: 1.8,
+      padding: '10px 14px', borderRadius: 10, whiteSpace: 'pre',
+      pointerEvents: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+    }}>
+      {info}
+    </div>
+  );
+}
+
 // 보호수 이미지 원본 비율 상수
 // trees/ 이미지는 1024×1536 (너비:높이 = 2:3) — 의도된 세로형 비율
 // 컨테이너 자체를 2:3으로 설정해 레터박스 없이 렌더링
@@ -575,6 +621,9 @@ export default function GardenView({ year, currentMonth, pots: initialPots, mont
           onSoilChange={handleSoilChange}
         />
       )}
+
+      {/* [임시 측정] 탭바 위치 진단 */}
+      <MeasureOverlay />
     </div>
   );
 }
