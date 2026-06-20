@@ -12,7 +12,7 @@ export default async function WorkspaceLayout({ children, params }: Props) {
   return (
     <ErrorBoundary>
       <Suspense fallback={<div style={{ minHeight: '100svh', background: '#FBF6EE' }} />}>
-        <div style={{ paddingBottom: 'var(--tabbar-h)', animation: 'contentIn 0.25s ease' }}>
+        <div style={{ paddingBottom: 'var(--tabbar-h)', animation: 'contentIn 0.25s ease', minHeight: '100lvh' }}>
           {children}
         </div>
       </Suspense>
