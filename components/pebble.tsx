@@ -1,5 +1,6 @@
 import type { ItemType } from '@/lib/types';
 import { TYPE_COLOR, TYPE_TINT } from '@/lib/item-style';
+import { OwnerAvatar } from '@/components/owner-avatar';
 
 export interface PebbleItem {
   title: string;
@@ -7,9 +8,12 @@ export interface PebbleItem {
   type: ItemType;
   is_recurring: boolean;
   event_date: string | null;
+  owner_user_id: string | null;
+  is_shared?: boolean;
 }
 
 interface PebbleMember {
+  user_id: string;
   display_name: string;
   color: string;
 }
@@ -21,12 +25,12 @@ function daysUntil(dateStr: string, serverToday: string): number {
 }
 
 export function Pebble({
-  item, onToggle, onClick, ownerMember, showDateBadge, completed, serverToday,
+  item, onToggle, onClick, members, showDateBadge, completed, serverToday,
 }: {
   item: PebbleItem;
   onToggle: (e: React.MouseEvent) => void;
   onClick: () => void;
-  ownerMember?: PebbleMember;
+  members?: PebbleMember[];
   showDateBadge?: boolean;
   completed: boolean;
   serverToday?: string;
@@ -138,16 +142,8 @@ export function Pebble({
         );
       })()}
 
-      {ownerMember && (
-        <div style={{
-          width: 24, height: 24, borderRadius: 9999,
-          background: ownerMember.color, color: '#fff',
-          fontSize: 10, fontWeight: 800,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          flexShrink: 0, boxShadow: '0 0 0 2px #FFFCF7',
-        }}>
-          {ownerMember.display_name.charAt(0)}
-        </div>
+      {members && members.length > 0 && (
+        <OwnerAvatar item={item} members={members} size={24} ring="#FFFCF7" />
       )}
     </div>
   );

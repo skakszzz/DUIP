@@ -51,7 +51,7 @@ export default async function SettingsPage({ params }: Props) {
 
   return (
     <div style={{ minHeight: '100dvh', background: T.cream }}>
-      <div style={{ maxWidth: 448, margin: '0 auto', padding: '52px 16px 100px' }}>
+      <div style={{ maxWidth: 448, margin: '0 auto', paddingTop: 'max(env(safe-area-inset-top), 52px)', paddingLeft: 16, paddingRight: 16, paddingBottom: 100 }}>
 
         {/* 헤더 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28 }}>

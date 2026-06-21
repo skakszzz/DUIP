@@ -52,7 +52,7 @@ export default async function MonthPage({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-[#FBF6EE]">
-      <div className="max-w-md mx-auto px-4" style={{ paddingTop: 52, paddingBottom: 100 }}>
+      <div className="max-w-md mx-auto px-4" style={{ paddingTop: 'max(env(safe-area-inset-top), 52px)', paddingBottom: 100 }}>
         {/* 헤더 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
           <Link

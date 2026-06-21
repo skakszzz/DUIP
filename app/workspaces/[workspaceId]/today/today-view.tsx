@@ -32,6 +32,7 @@ interface Item {
   is_completed: boolean;
   completed_at: string | null;
   owner_user_id: string | null;
+  is_shared?: boolean;
   created_by: string;
   is_recurring: boolean;
   recurrence_rule: RecurrenceRule | null;
@@ -438,7 +439,7 @@ export default function TodayView({ workspaceId, userId, initialItems, members, 
     <div className="min-h-screen bg-[#FBF6EE] duip-page-enter">
       <div className="max-w-md mx-auto" style={{ paddingBottom: 'calc(100px + env(safe-area-inset-bottom, 0px))' }}>
         {/* ── 헤더 ── */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '52px 20px 12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 'max(env(safe-area-inset-top), 52px)', paddingLeft: 20, paddingRight: 20, paddingBottom: 12 }}>
           <Link href="/workspaces" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
             <div style={{ fontSize: 26, lineHeight: 1 }}>🌿</div>
             <div>
@@ -570,7 +571,7 @@ export default function TodayView({ workspaceId, userId, initialItems, members, 
                       serverToday={today}
                       onToggle={(e) => { e.stopPropagation(); toggleComplete(item); }}
                       onClick={() => setEditingItem(item)}
-                      ownerMember={getMember(item.owner_user_id)}
+                      members={members}
                     />
                   ))}
                 </div>
@@ -589,7 +590,7 @@ export default function TodayView({ workspaceId, userId, initialItems, members, 
                         serverToday={today}
                         onToggle={(e) => { e.stopPropagation(); setConfirmItem(item); }}
                         onClick={() => setEditingItem(item)}
-                        ownerMember={getMember(item.owner_user_id)}
+                        members={members}
                         showDateBadge
                       />
                     ))}
@@ -610,7 +611,7 @@ export default function TodayView({ workspaceId, userId, initialItems, members, 
                         serverToday={today}
                         onToggle={(e) => { e.stopPropagation(); toggleComplete(item); }}
                         onClick={() => setEditingItem(item)}
-                        ownerMember={getMember(item.owner_user_id)}
+                        members={members}
                       />
                     ))}
                   </div>
@@ -764,6 +765,7 @@ function TodayAddSheet({
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [ownerUserId, setOwnerUserId] = useState<string>(userId);
+  const [isShared, setIsShared] = useState(false);
   const [scheduleMode, setScheduleMode] = useState<null | 'date' | 'recurring'>(null);
   const [isRecurring, setIsRecurring] = useState(false);
   const [recurrenceRule, setRecurrenceRule] = useState<RecurrenceRule | null>(null);
@@ -788,7 +790,8 @@ function TodayAddSheet({
     const { data, error } = await supabase.from('items').insert({
       workspace_id: workspaceId,
       created_by: userId,
-      owner_user_id: ownerUserId,
+      owner_user_id: isShared ? null : ownerUserId,
+      is_shared: isShared,
       title: title.trim(),
       description: description.trim() || null,
       type,
@@ -902,8 +905,11 @@ function TodayAddSheet({
             <div style={{ background: '#FFFCF7', borderRadius: 16, padding: '12px 16px', boxShadow: '0 1px 2px rgba(74,46,22,0.05)' }}>
               <div style={{ fontSize: 10.5, fontWeight: 700, color: '#8A7359', letterSpacing: '0.06em', marginBottom: 4 }}>누가</div>
               <select
-                value={ownerUserId}
-                onChange={(e) => setOwnerUserId(e.target.value)}
+                value={isShared ? '__shared__' : ownerUserId}
+                onChange={(e) => {
+                  if (e.target.value === '__shared__') { setIsShared(true); }
+                  else { setIsShared(false); setOwnerUserId(e.target.value); }
+                }}
                 style={{
                   display: 'block', width: '100%',
                   background: 'none', border: 'none', outline: 'none', padding: 0,
@@ -914,6 +920,7 @@ function TodayAddSheet({
                 {members.map((m) => (
                   <option key={m.user_id} value={m.user_id}>{m.avatar} {m.display_name}</option>
                 ))}
+                <option value="__shared__">👥 둘이 같이</option>
               </select>
             </div>
           )}

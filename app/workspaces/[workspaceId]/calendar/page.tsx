@@ -36,7 +36,7 @@ export default async function CalendarPage({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-[#FBF6EE]">
-      <div className="max-w-md mx-auto px-4" style={{ paddingTop: 52, paddingBottom: 100 }}>
+      <div className="max-w-md mx-auto px-4" style={{ paddingTop: 'max(env(safe-area-inset-top), 52px)', paddingBottom: 100 }}>
         {/* 헤더 */}
         <div style={{ marginBottom: 4 }}>
           <div style={{ fontSize: 22, fontWeight: 800, color: '#2A1B0E', letterSpacing: '-0.025em', lineHeight: 1.1 }}>

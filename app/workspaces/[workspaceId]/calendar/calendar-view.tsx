@@ -7,6 +7,7 @@ import { EmptyCalendar } from '@/components/empty-states';
 import { createClient } from '@/lib/supabase/client';
 import { kstNow } from '@/lib/dates';
 import type { ItemType } from '@/lib/types';
+import { OwnerAvatar } from '@/components/owner-avatar';
 import { TYPE_COLOR, TYPE_TINT, TYPE_LABEL, TYPE_OPTIONS } from '@/lib/item-style';
 import { TypeIcon } from '@/components/type-icon';
 import { useToast } from '@/components/toast';
@@ -19,6 +20,7 @@ interface CalItem {
   event_end_date?: string | null; // null = 단일 날짜, 값 = 여러 날 리본
   is_completed: boolean;
   owner_user_id: string | null;
+  is_shared?: boolean;
 }
 
 interface Member {
@@ -184,10 +186,6 @@ export default function CalendarView({ workspaceId, userId, initialItems, member
     } else {
       router.refresh();
     }
-  }
-
-  function getMember(uid: string | null) {
-    return members.find((m) => m.user_id === uid);
   }
 
   const isToday = (d: number) => year === now.getFullYear() && month === now.getMonth() + 1 && d === now.getDate();
@@ -369,7 +367,6 @@ export default function CalendarView({ workspaceId, userId, initialItems, member
               {selectedItems.map((item) => {
                 const color  = TYPE_COLOR[item.type];
                 const tint   = TYPE_TINT[item.type];
-                const owner  = getMember(item.owner_user_id);
                 return (
                   <div
                     key={item.id}
@@ -408,17 +405,7 @@ export default function CalendarView({ workspaceId, userId, initialItems, member
                         {TYPE_LABEL[item.type]}
                       </div>
                     </div>
-                    {owner && (
-                      <div style={{
-                        width: 22, height: 22, borderRadius: 9999,
-                        background: owner.color, color: '#fff',
-                        fontSize: 9, fontWeight: 800,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        flexShrink: 0,
-                      }}>
-                        {owner.display_name.charAt(0)}
-                      </div>
-                    )}
+                    <OwnerAvatar item={item} members={members} size={22} />
                   </div>
                 );
               })}
@@ -462,6 +449,7 @@ function CalAddSheet({ workspaceId, userId, members, presetDate, onClose, onAdde
   const [multiDay, setMultiDay] = useState(false);
   const [eventEndDate, setEventEndDate] = useState('');
   const [ownerUserId, setOwnerUserId] = useState<string>(userId);
+  const [isShared, setIsShared] = useState(false);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -473,7 +461,8 @@ function CalAddSheet({ workspaceId, userId, members, presetDate, onClose, onAdde
     const { data, error } = await supabase.from('items').insert({
       workspace_id: workspaceId,
       created_by: userId,
-      owner_user_id: ownerUserId,
+      owner_user_id: isShared ? null : ownerUserId,
+      is_shared: isShared,
       title: title.trim(),
       description: description.trim() || null,
       type,
@@ -597,12 +586,17 @@ function CalAddSheet({ workspaceId, userId, members, presetDate, onClose, onAdde
             <div style={{ background: '#FFFCF7', borderRadius: 16, padding: '12px 16px', boxShadow: '0 1px 2px rgba(74,46,22,0.05)' }}>
               <div style={{ fontSize: 10.5, fontWeight: 700, color: '#8A7359', letterSpacing: '0.06em', marginBottom: 4 }}>누가</div>
               <select
-                value={ownerUserId} onChange={(e) => setOwnerUserId(e.target.value)}
+                value={isShared ? '__shared__' : ownerUserId}
+                onChange={(e) => {
+                  if (e.target.value === '__shared__') { setIsShared(true); }
+                  else { setIsShared(false); setOwnerUserId(e.target.value); }
+                }}
                 style={{ display: 'block', width: '100%', background: 'none', border: 'none', outline: 'none', padding: 0, fontSize: 14, fontWeight: 700, color: '#2A1B0E', cursor: 'pointer' }}
               >
                 {members.map((m) => (
                   <option key={m.user_id} value={m.user_id}>{m.avatar} {m.display_name}</option>
                 ))}
+                <option value="__shared__">👥 둘이 같이</option>
               </select>
             </div>
           )}

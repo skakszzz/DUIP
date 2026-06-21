@@ -16,6 +16,7 @@ export interface EditableItem {
   timeframe: string;
   is_completed: boolean;
   owner_user_id: string | null;
+  is_shared?: boolean;
   created_by: string;
   is_recurring: boolean;
   recurrence_rule: RecurrenceRule | null;
@@ -62,6 +63,7 @@ export default function ItemEditModal({ item, members, onClose, onUpdated, onDel
   const [description, setDescription] = useState(item.description ?? '');
   const [timeframe, setTimeframe]     = useState(item.timeframe);
   const [ownerUserId, setOwnerUserId] = useState(item.owner_user_id ?? '');
+  const [isShared, setIsShared] = useState(item.is_shared ?? false);
   const [isRecurring, setIsRecurring] = useState(item.is_recurring ?? false);
   const [recurrenceRule, setRecurrenceRule] = useState<RecurrenceRule | null>(item.recurrence_rule ?? null);
   const [eventDate, setEventDate]     = useState(item.event_date ?? '');
@@ -90,7 +92,8 @@ export default function ItemEditModal({ item, members, onClose, onUpdated, onDel
         title: title.trim(),
         description: description.trim() || null,
         timeframe,
-        owner_user_id: ownerUserId || null,
+        owner_user_id: isShared ? null : (ownerUserId || null),
+        is_shared: isShared,
         is_recurring: scheduleMode === 'recurring' && isRecurring,
         recurrence_rule: scheduleMode === 'recurring' && isRecurring ? recurrenceRule : null,
         event_date: scheduleMode === 'date' ? eventDate || null : null,
@@ -195,8 +198,11 @@ export default function ItemEditModal({ item, members, onClose, onUpdated, onDel
             </select>
 
             <select
-              value={ownerUserId}
-              onChange={(e) => setOwnerUserId(e.target.value)}
+              value={isShared ? '__shared__' : ownerUserId}
+              onChange={(e) => {
+                if (e.target.value === '__shared__') { setIsShared(true); }
+                else { setIsShared(false); setOwnerUserId(e.target.value); }
+              }}
               className="flex-1 rounded-xl border border-[#E8D5B8] bg-white px-3 py-2.5 text-[#5C3A1F] text-sm focus:outline-none"
             >
               {members.map((m) => (
@@ -204,6 +210,7 @@ export default function ItemEditModal({ item, members, onClose, onUpdated, onDel
                   {m.avatar} {m.display_name}
                 </option>
               ))}
+              {members.length >= 2 && <option value="__shared__">👥 둘이 같이</option>}
             </select>
           </div>
 

@@ -47,6 +47,7 @@ export interface Item {
   recurrenceRule?: RecurrenceRule;
   eventDate?: string;
   eventLunarDate?: string;
+  isShared?: boolean;
   isCompleted: boolean;
   completedAt?: string;
   completedBy?: string;

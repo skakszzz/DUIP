@@ -74,7 +74,7 @@ export default function MemosView({ workspaceId, userId, workspaceName, members,
 
   return (
     <div className="duip-page-enter" style={{ minHeight: '100dvh', background: T.cream }}>
-      <div style={{ maxWidth: 448, margin: '0 auto', padding: '52px 16px 110px' }}>
+      <div style={{ maxWidth: 448, margin: '0 auto', paddingTop: 'max(env(safe-area-inset-top), 52px)', paddingLeft: 16, paddingRight: 16, paddingBottom: 110 }}>
         {/* 헤더 */}
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 16 }}>
           <div>

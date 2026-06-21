@@ -17,6 +17,7 @@ interface Item {
   timeframe: string;
   is_completed: boolean;
   owner_user_id: string | null;
+  is_shared?: boolean;
   created_by: string;
   is_recurring: boolean;
   recurrence_rule: RecurrenceRule | null;
@@ -232,7 +233,7 @@ export default function MonthBoard({ workspaceId, userId, initialItems, members,
                   completed={item.is_completed}
                   onToggle={(e) => { e.stopPropagation(); toggleComplete(item); }}
                   onClick={() => setEditingItem(item)}
-                  ownerMember={getMember(item.owner_user_id)}
+                  members={members}
                 />
               ))}
             </div>

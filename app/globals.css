@@ -121,6 +121,8 @@
   --sidebar-ring: #5C3A1F;
 }
 
+.app-safe-top { padding-top: max(env(safe-area-inset-top), 52px); }
+
 /* ── 탭 전환 연출 (duipRise) ─────────────────────────────────── */
 @keyframes duipRise {
   from { opacity: 0; transform: translateY(16px); }
@@ -223,6 +225,10 @@
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-gowun-dodum), "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    word-break: keep-all;
+    text-wrap: pretty;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
   }
   html {
     @apply h-full;

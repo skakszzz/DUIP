@@ -1,6 +1,6 @@
 # 두잎 DO-IF — 개발 진행 현황
 
-> 마지막 업데이트: 2026-05-28
+> 마지막 업데이트: 2026-06-07
 > 기준 브랜치: main
 > 배포: Vercel (운영 중)
 > 실행: `npm run dev` → http://localhost:3000
@@ -139,6 +139,9 @@ TODO / WISH / 기타 3종 아이템을 관리하고, 매월 화분을 키워 동
 - [x] 설정 화면에 알림 토글 연동
 - [x] PWA 매니페스트 + Apple Web App 메타데이터 완료
 - [x] OG 태그 (openGraph) 완료
+- [x] 동산 선택 화면 참여자 이름 전체 표시 (`components/workspace-picker.tsx` — `MemberDots` pill 스타일)
+- [x] 캘린더 Realtime 구독 확인 (`calendar-view.tsx` — INSERT/UPDATE/DELETE + cleanup 완비)
+- [x] Cron service role 클라이언트 확인 (`api/cron/push-events/route.ts` — RLS 우회 정상)
 
 ---
 
@@ -148,6 +151,16 @@ TODO / WISH / 기타 3종 아이템을 관리하고, 매월 화분을 키워 동
 - [x] `Gowun Dodum` 폰트 전역 적용 (`app/layout.tsx`)
 - [x] `proxy.ts` 매처에 `manifest.json` 제외 (비로그인 PWA 매니페스트 보호)
 - [x] `app/icon.svg` 앱 아이콘
+
+---
+
+## DB 직접 수정 이력 (2026-06-07, claude.ai Supabase MCP)
+
+- [x] RLS 정책 중복 제거 + `auth.uid()` → `(select auth.uid())` 최적화 (전 테이블)
+- [x] 외래키 인덱스 8개 추가 (쿼리 성능 개선)
+- [x] `memos_touch_updated_at` 함수 `search_path` 고정 (보안 강화)
+- [x] `workspaces` 소유자 삭제 정책 추가(`owner_delete_workspace`) → **동산 삭제 버그 해결**
+- [x] `memberships` 조회 정책 변경: "본인만" → `current_user_workspace_ids()` security definer 함수 사용("같은 동산 모든 멤버") → **참여자 표시 버그 해결**
 
 ---
 
@@ -226,10 +239,7 @@ VAPID_SUBJECT          # mailto:... 형식
 CRON_SECRET            # Vercel Cron 인증 토큰
 ```
 
-> ⚠️ **주의**: Vercel Cron(`/api/cron/push-events`)은 사용자 세션 없이 실행됨.
-> `items` / `push_subscriptions` 테이블에 anon SELECT RLS가 막혀 있으면
-> 알림이 발송되지 않음 → Supabase 대시보드에서 해당 테이블 RLS 정책 확인 필요.
-> 필요 시 `SUPABASE_SERVICE_ROLE_KEY`를 추가하고 cron route에서 service role 클라이언트 사용.
+> ✅ Vercel Cron(`/api/cron/push-events`)은 `SUPABASE_SERVICE_ROLE_KEY`로 RLS를 우회해 동작함 (확인 완료).
 
 ---
 
@@ -237,8 +247,8 @@ CRON_SECRET            # Vercel Cron 인증 토큰
 
 | # | 심각도 | 내용 | 비고 |
 |---|--------|------|------|
-| 1 | 🟡 중간 | Cron job anon 권한 — RLS에 따라 푸시 미발송 가능 | 위 ⚠️ 참고 |
-| 2 | 🟢 낮음 | 캘린더 탭 Realtime 미구독 | 새로고침 시 반영됨 |
+| 1 | ✅ 해결 | Cron job anon 권한 | `route.ts:19` 에서 이미 `SUPABASE_SERVICE_ROLE_KEY` 사용 중 |
+| 2 | ✅ 해결 | 캘린더 탭 Realtime 미구독 | `calendar-view.tsx:78–121` 에 이미 구현됨 |
 | 3 | 🟢 낮음 | 나머지 64종 식물 이미지 미생성 | 이모지 폴백으로 정상 동작 |
 | 4 | 🟢 낮음 | 월 전환 시 신규 화분 자동 생성 미구현 | 수동으로 식물 선택 시 생성됨 |
 | 5 | 🟢 낮음 | 동산 stage: 홈(오늘 완료율) vs 동산(월간 누적)이 다를 수 있음 | 의도된 설계일 수 있음 |
