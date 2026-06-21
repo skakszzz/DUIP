@@ -193,7 +193,7 @@ export default function CalendarView({ workspaceId, userId, initialItems, member
   const isToday = (d: number) => year === now.getFullYear() && month === now.getMonth() + 1 && d === now.getDate();
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
+    <div className="duip-page-enter" style={{ display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
       {/* 월 네비게이션 */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 4px 20px' }}>
         <button

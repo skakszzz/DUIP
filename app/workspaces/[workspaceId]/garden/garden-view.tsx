@@ -238,6 +238,7 @@ export default function GardenView({ year, currentMonth, pots: initialPots, mont
   return (
     <div
       ref={containerRef}
+      className="duip-page-enter"
       onPointerMove={handleContainerPointerMove}
       onPointerUp={handleContainerPointerUp}
       onPointerCancel={handleContainerPointerUp}

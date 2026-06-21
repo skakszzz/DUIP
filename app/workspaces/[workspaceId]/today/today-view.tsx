@@ -435,7 +435,7 @@ export default function TodayView({ workspaceId, userId, initialItems, members, 
   const todoItems = visibleItems.filter((i) => !isCompletedToday(i, today));
 
   return (
-    <div className="min-h-screen bg-[#FBF6EE]">
+    <div className="min-h-screen bg-[#FBF6EE] duip-page-enter">
       <div className="max-w-md mx-auto" style={{ paddingBottom: 'calc(100px + env(safe-area-inset-bottom, 0px))' }}>
         {/* ── 헤더 ── */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '52px 20px 12px' }}>

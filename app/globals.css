@@ -135,7 +135,6 @@
 }
 .duip-page-enter {
   animation: duipRise .5s cubic-bezier(.22,.7,.3,1) both;
-  will-change: opacity, transform;
 }
 @media (prefers-reduced-motion: reduce) {
   .duip-page-enter { animation: duipFade .25s ease both; }
