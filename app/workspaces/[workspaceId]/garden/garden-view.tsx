@@ -439,7 +439,7 @@ export default function GardenView({ workspaceId, year, currentMonth, pots: init
       {/* 편집 모드 상단 바 */}
       {editMode && (
         <div style={{
-          position: 'absolute', top: 14, left: '50%', transform: 'translateX(-50%)',
+          position: 'absolute', top: 'calc(env(safe-area-inset-top, 0px) + 14px)', left: '50%', transform: 'translateX(-50%)',
           zIndex: 30, display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap',
         }}>
           <div style={{
@@ -1038,7 +1038,7 @@ function ScreenshotOverlay({ pots, treeType, year, currentMonth, onClose }: {
 
       {/* 하단 브랜딩 (캡처 영역 안) */}
       <div style={{
-        position: 'absolute', bottom: 88, left: '50%', transform: 'translateX(-50%)',
+        position: 'absolute', bottom: 'calc(var(--tabbar-h) + 12px)', left: '50%', transform: 'translateX(-50%)',
         background: isNight ? 'rgba(255,255,255,0.12)' : 'rgba(251,246,238,0.90)',
         backdropFilter: 'blur(8px)',
         borderRadius: 9999, padding: '10px 24px',
