@@ -258,12 +258,13 @@ export default function TodayView({ workspaceId, userId, initialItems, members, 
 
   const needsTreePick = (treeSelectedYear ?? 0) < currentYear;
   const [showTreePicker, setShowTreePicker]   = useState(needsTreePick);
-  const [showPlantPicker, setShowPlantPicker] = useState(!needsTreePick && !monthlyPot);
+  // row는 서버에서 자동 생성되므로(plant_id null) 존재 여부가 아닌 plant_id로 판단
+  const [showPlantPicker, setShowPlantPicker] = useState(!needsTreePick && !monthlyPot?.plant_id);
 
   function handleTreeDone(newTree: TreeType) {
     setTreeType(newTree);
     setShowTreePicker(false);
-    if (!monthlyPotState) setShowPlantPicker(true);
+    if (!monthlyPotState?.plant_id) setShowPlantPicker(true);
   }
 
   function handlePlantDone(pot: { plant_id: string; soil_type: string }) {
@@ -517,6 +518,33 @@ export default function TodayView({ workspaceId, userId, initialItems, members, 
                 </svg>
               </button>
             </div>
+          )}
+
+          {/* ── 화분 미선택 유도 카드 (푸시 실패 시 안전망) ── */}
+          {!monthlyPotState?.plant_id && (
+            <button
+              onClick={() => setShowPlantPicker(true)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 10, width: '100%',
+                background: 'linear-gradient(135deg, rgba(242,198,110,0.22), rgba(154,124,201,0.14))',
+                borderRadius: 18, padding: '12px 14px', marginBottom: 12,
+                border: 'none', cursor: 'pointer', textAlign: 'left',
+                boxShadow: '0 1px 4px rgba(74,46,22,0.06)',
+              }}
+            >
+              <div style={{ fontSize: 26, lineHeight: 1 }}>🪴</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 13, fontWeight: 800, color: '#2A1B0E', letterSpacing: '-0.01em' }}>
+                  {month}월의 화분이 기다리고 있어요
+                </div>
+                <div style={{ fontSize: 11.5, color: '#8A7359', marginTop: 2 }}>
+                  이번 달 식물 고르기
+                </div>
+              </div>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9A7553" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 18l6-6-6-6"/>
+              </svg>
+            </button>
           )}
 
           {/* ── 이번 달 식물 카드 ── */}

@@ -41,12 +41,19 @@ export default async function GardenPage({ params }: Props) {
   if (!workspace) redirect('/workspaces');
   if (!membership) redirect('/workspaces');
 
-  // 현재 달 화분이 없으면 자동 생성 (식물 미선택 상태로)
-  if (!pots?.find(p => p.month === currentMonth)) {
+  // 현재 달 화분이 없으면 자동 생성 (식물 미선택 상태로) 후 재조회 — stale props 방지
+  let potRows = pots ?? [];
+  if (!potRows.find(p => p.month === currentMonth)) {
     await supabase.from('monthly_pots').upsert(
       { workspace_id: workspaceId, year, month: currentMonth, soil_type: 'rich', growth_points: 0 },
       { onConflict: 'workspace_id,year,month', ignoreDuplicates: true }
     );
+    const { data: refreshed } = await supabase.from('monthly_pots')
+      .select('id, month, plant_id, soil_type, growth_points, pos_x, pos_y')
+      .eq('workspace_id', workspaceId)
+      .eq('year', year)
+      .order('month');
+    potRows = refreshed ?? potRows;
   }
 
   const monthStats = Array.from({ length: 12 }).map((_, i) => {
@@ -60,9 +67,10 @@ export default async function GardenPage({ params }: Props) {
 
   return (
     <GardenView
+      workspaceId={workspaceId}
       year={year}
       currentMonth={currentMonth}
-      pots={pots ?? []}
+      pots={potRows}
       monthStats={monthStats}
       treeType={workspace.tree_type}
     />

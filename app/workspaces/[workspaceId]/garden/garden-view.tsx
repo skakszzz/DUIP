@@ -37,6 +37,7 @@ interface MonthItem {
 }
 
 interface Props {
+  workspaceId: string;
   year: number;
   currentMonth: number;
   pots: MonthlyPot[];
@@ -125,7 +126,7 @@ const POT_POSITIONS: { left: number; bottomPct: number; zIndex: number }[] = [
   { left: 50, bottomPct: 37.0, zIndex: 1 }, // 12월
 ];
 
-export default function GardenView({ year, currentMonth, pots: initialPots, monthStats, treeType }: Props) {
+export default function GardenView({ workspaceId, year, currentMonth, pots: initialPots, monthStats, treeType }: Props) {
   const router = useRouter();
   const [pots, setPots] = useState<MonthlyPot[]>(initialPots);
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
@@ -210,11 +211,24 @@ export default function GardenView({ year, currentMonth, pots: initialPots, mont
   const bloomedPots = pots.filter((p) => stageFromPoints(p.growth_points) === 5).length;
 
   async function selectPlant(plantId: string, soilId: SoilType) {
-    if (!selectedPot) return;
+    if (pickerMonth == null) return;
     setSaving(true);
     const supabase = createClient();
-    await supabase.from('monthly_pots').update({ plant_id: plantId, soil_type: soilId, selected_at: new Date().toISOString() }).eq('id', selectedPot.id);
-    setPots(prev => prev.map(p => p.id === selectedPot.id ? { ...p, plant_id: plantId, soil_type: soilId } : p));
+    // row가 없는 달(월 전환 직후 등)에도 실패하지 않도록 upsert로 생성/갱신
+    const { data } = await supabase
+      .from('monthly_pots')
+      .upsert(
+        { workspace_id: workspaceId, year, month: pickerMonth, plant_id: plantId, soil_type: soilId, selected_at: new Date().toISOString() },
+        { onConflict: 'workspace_id,year,month' }
+      )
+      .select('id, month, plant_id, soil_type, growth_points, pos_x, pos_y')
+      .single();
+    if (data) {
+      const row = data as MonthlyPot;
+      setPots(prev => prev.some(p => p.id === row.id)
+        ? prev.map(p => p.id === row.id ? { ...p, ...row } : p)
+        : [...prev, row]);
+    }
     setSaving(false);
     setShowPicker(false);
     router.refresh();
