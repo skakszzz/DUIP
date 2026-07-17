@@ -6,7 +6,8 @@ export const dynamic = 'force-dynamic';
 
 // checked: notification_hour가 현재 KST 시각과 일치한 워크스페이스 수
 // matched: 그 워크스페이스들의 오늘/내일 event_date 미완료 아이템 수
-// sent/failed: 구독 단위 웹푸시 발송 성공/실패 건수
+// sent/failed: 구독 단위 웹푸시 발송 성공/실패 건수 (이벤트 리마인더)
+// monthly_sent/monthly_failed: 매월 1일 화분 선택 유도 푸시 발송 건수
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get('authorization');
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -15,7 +16,7 @@ export async function GET(req: NextRequest) {
 
   const supabase = createAdminClient();
 
-  const counts = { checked: 0, matched: 0, sent: 0, failed: 0 };
+  const counts = { checked: 0, matched: 0, sent: 0, failed: 0, monthly_sent: 0, monthly_failed: 0 };
   const done = (extra?: Record<string, unknown>) => {
     console.log(JSON.stringify({ route: 'cron/push-events', ...counts, ...extra }));
     return NextResponse.json(counts);
@@ -39,6 +40,44 @@ export async function GET(req: NextRequest) {
 
   const workspaceIds = workspaces.map((w) => w.id);
 
+  // ── 매월 1일: 새 화분 선택 유도 푸시 ──────────────────────────────
+  // ?simulate=monthly 로 날짜 조건을 무시하고 테스트 실행 가능
+  const simulateMonthly = req.nextUrl.searchParams.get('simulate') === 'monthly';
+  if (kstNow.getUTCDate() === 1 || simulateMonthly) {
+    const year  = kstNow.getUTCFullYear();
+    const month = kstNow.getUTCMonth() + 1;
+
+    const { data: potRows, error: potError } = await supabase
+      .from('monthly_pots')
+      .select('workspace_id, plant_id')
+      .eq('year', year)
+      .eq('month', month)
+      .in('workspace_id', workspaceIds);
+
+    if (potError) return done({ error: `monthly_pots: ${potError.message}` });
+    const potByWs = new Map((potRows ?? []).map((p) => [p.workspace_id, p]));
+
+    for (const wsId of workspaceIds) {
+      // row 자체가 없거나 plant_id가 null이면 아직 미선택
+      if (potByWs.get(wsId)?.plant_id) continue;
+
+      const { data: subs } = await supabase
+        .from('push_subscriptions')
+        .select('endpoint, p256dh, auth')
+        .eq('workspace_id', wsId);
+      if (!subs || subs.length === 0) continue;
+
+      const r = await sendPushToSubs(supabase, subs, {
+        title: `${month}월의 새 화분을 골라주세요 🌱`,
+        body: '이번 달 함께 키울 식물이 기다리고 있어요',
+        tag: `monthly-pot-${wsId}-${year}-${month}`,
+      });
+      counts.monthly_sent += r.sent;
+      counts.monthly_failed += r.failed;
+    }
+  }
+
+  // ── 이벤트 리마인더 (오늘/내일 event_date) ────────────────────────
   const { data: items, error: itemsError } = await supabase
     .from('items')
     .select('id, title, workspace_id, event_date')
