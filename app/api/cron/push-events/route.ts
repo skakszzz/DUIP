@@ -28,6 +28,10 @@ export async function GET(req: NextRequest) {
   const today    = kstNow.toISOString().slice(0, 10);
   const tomorrow = new Date(kstNow.getTime() + 86400000).toISOString().slice(0, 10);
 
+  // ?simulate=monthly (Bearer 인증 동일): monthly 분기를 날짜(1일)·시각(notification_hour)
+  // 조건 모두 무시하고 전체 워크스페이스 대상으로 실행. 일반 크론 경로는 그대로.
+  const simulateMonthly = req.nextUrl.searchParams.get('simulate') === 'monthly';
+
   // 이 시각(KST 시)에 알림을 보낼 워크스페이스만 조회
   const { data: workspaces, error: wsError } = await supabase
     .from('workspaces')
@@ -36,28 +40,33 @@ export async function GET(req: NextRequest) {
 
   if (wsError) return done({ error: `workspaces: ${wsError.message}` });
   counts.checked = workspaces?.length ?? 0;
-  if (!workspaces || workspaces.length === 0) return done();
+  if (!simulateMonthly && (!workspaces || workspaces.length === 0)) return done();
 
-  const workspaceIds = workspaces.map((w) => w.id);
+  const workspaceIds = (workspaces ?? []).map((w) => w.id);
 
   // ── 매월 1일: 새 화분 선택 유도 푸시 ──────────────────────────────
-  // ?simulate=monthly 로 날짜 조건을 무시하고 테스트 실행 가능
-  const simulateMonthly = req.nextUrl.searchParams.get('simulate') === 'monthly';
   if (kstNow.getUTCDate() === 1 || simulateMonthly) {
     const year  = kstNow.getUTCFullYear();
     const month = kstNow.getUTCMonth() + 1;
+
+    let monthlyWsIds = workspaceIds;
+    if (simulateMonthly) {
+      const { data: allWs, error: allWsError } = await supabase.from('workspaces').select('id');
+      if (allWsError) return done({ error: `workspaces(all): ${allWsError.message}` });
+      monthlyWsIds = (allWs ?? []).map((w) => w.id);
+    }
 
     const { data: potRows, error: potError } = await supabase
       .from('monthly_pots')
       .select('workspace_id, plant_id')
       .eq('year', year)
       .eq('month', month)
-      .in('workspace_id', workspaceIds);
+      .in('workspace_id', monthlyWsIds);
 
     if (potError) return done({ error: `monthly_pots: ${potError.message}` });
     const potByWs = new Map((potRows ?? []).map((p) => [p.workspace_id, p]));
 
-    for (const wsId of workspaceIds) {
+    for (const wsId of monthlyWsIds) {
       // row 자체가 없거나 plant_id가 null이면 아직 미선택
       if (potByWs.get(wsId)?.plant_id) continue;
 
