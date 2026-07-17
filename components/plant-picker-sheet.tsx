@@ -53,7 +53,7 @@ export default function PlantPickerSheet({ workspaceId, year, month, onDone, onS
     const { data } = await supabase
       .from('monthly_pots')
       .upsert(
-        { workspace_id: workspaceId, year, month, plant_id: selectedPlant, soil_type: selectedSoil },
+        { workspace_id: workspaceId, year, month, plant_id: selectedPlant, soil_type: selectedSoil, selected_at: new Date().toISOString() },
         { onConflict: 'workspace_id,year,month' }
       )
       .select('plant_id, soil_type')
