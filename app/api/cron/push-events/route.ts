@@ -1,8 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase-admin';
-import { sendPushToSubs } from '@/lib/push-send';
+import { sendPushToSubs, type PushSubRow } from '@/lib/push-send';
 
 export const dynamic = 'force-dynamic';
+
+// 구독은 (user_id, workspace_id) 단위라 workspace_id 필터로는 마지막으로
+// 구독한 동산에만 묶인다 → 멤버 user_id 기준으로 조회하고 endpoint 중복 제거
+async function getWorkspaceSubs(
+  supabase: ReturnType<typeof createAdminClient>,
+  workspaceId: string,
+): Promise<PushSubRow[]> {
+  const { data: members } = await supabase
+    .from('memberships')
+    .select('user_id')
+    .eq('workspace_id', workspaceId);
+  const userIds = (members ?? []).map((m) => m.user_id);
+  if (userIds.length === 0) return [];
+
+  const { data: subs } = await supabase
+    .from('push_subscriptions')
+    .select('endpoint, p256dh, auth')
+    .in('user_id', userIds);
+
+  const seen = new Set<string>();
+  const uniq: PushSubRow[] = [];
+  for (const s of subs ?? []) {
+    if (seen.has(s.endpoint)) continue;
+    seen.add(s.endpoint);
+    uniq.push(s);
+  }
+  return uniq;
+}
 
 // checked: notification_hour가 현재 KST 시각과 일치한 워크스페이스 수
 // matched: 그 워크스페이스들의 오늘/내일 event_date 미완료 아이템 수
@@ -70,11 +98,8 @@ export async function GET(req: NextRequest) {
       // row 자체가 없거나 plant_id가 null이면 아직 미선택
       if (potByWs.get(wsId)?.plant_id) continue;
 
-      const { data: subs } = await supabase
-        .from('push_subscriptions')
-        .select('endpoint, p256dh, auth')
-        .eq('workspace_id', wsId);
-      if (!subs || subs.length === 0) continue;
+      const subs = await getWorkspaceSubs(supabase, wsId);
+      if (subs.length === 0) continue;
 
       const r = await sendPushToSubs(supabase, subs, {
         title: `${month}월의 새 화분을 골라주세요 🌱`,
@@ -104,12 +129,8 @@ export async function GET(req: NextRequest) {
   }, {});
 
   for (const [workspaceId, wItems] of Object.entries(byWorkspace)) {
-    const { data: subs, error: subsError } = await supabase
-      .from('push_subscriptions')
-      .select('endpoint, p256dh, auth')
-      .eq('workspace_id', workspaceId);
-
-    if (subsError || !subs || subs.length === 0) continue;
+    const subs = await getWorkspaceSubs(supabase, workspaceId);
+    if (subs.length === 0) continue;
 
     for (const item of wItems) {
       const isToday = item.event_date === today;
