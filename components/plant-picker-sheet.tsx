@@ -8,7 +8,7 @@ import { plants } from '@/lib/data/plants';
 import type { PlantCategory } from '@/lib/data/plants';
 import { soilVariants } from '@/lib/data/pots';
 import { PLANT_EMOJIS } from '@/lib/data/plant-emojis';
-import { PotView } from '@/components/pot-view';
+import { PotView, POT_VIEW_TOP_OVERFLOW } from '@/components/pot-view';
 import type { SoilType } from '@/lib/types';
 
 interface Props {
@@ -162,7 +162,8 @@ export default function PlantPickerSheet({ workspaceId, year, month, onDone, onS
 
               {selectedSoil && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
-                  <div style={{ overflow: 'hidden', width: 64, height: 64, flexShrink: 0 }}>
+                  {/* 식물이 화분 위로 튀어나오는 만큼 높이를 확보하고 하단 정렬 — overflow:hidden 금지 (상단 잘림) */}
+                  <div style={{ width: 64, height: Math.round(64 * (1 + POT_VIEW_TOP_OVERFLOW)), display: 'flex', alignItems: 'flex-end', flexShrink: 0 }}>
                     <PotView
                       soilId={selectedSoil}
                       plantId={selectedPlant}

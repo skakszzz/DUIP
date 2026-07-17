@@ -26,6 +26,11 @@ const SOIL_Y          = 0.425;
 const PLANT_ANCHOR_Y  = 0.655;
 const PLANT_OFFSET_Y  = SOIL_Y - PLANT_ANCHOR_Y;  // -0.230
 
+// 식물 레이어가 컨테이너(size×size) 위로 튀어나오는 비율.
+// PotView를 overflow:hidden 컨테이너에 넣으면 이만큼 상단이 잘리므로,
+// 잘림 없이 담으려면 높이 size*(1+이 값)을 확보하고 하단 정렬할 것.
+export const POT_VIEW_TOP_OVERFLOW = -PLANT_OFFSET_Y; // 0.230
+
 interface PotViewProps {
   soilId: SoilType;
   plantId: string | null;
