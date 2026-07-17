@@ -3,7 +3,6 @@ import { redirect } from 'next/navigation';
 import InviteSection from './invite-section';
 import PushNotifManager from '@/components/push-notif-manager';
 import NotificationHourPicker from './notification-hour-picker';
-import TestPushButton from './test-push-button';
 import DeleteWorkspaceButton from './delete-workspace-button';
 import LeaveWorkspaceButton from './leave-workspace-button';
 import EditWorkspaceName from './edit-workspace-name';
@@ -112,7 +111,6 @@ export default async function SettingsPage({ params }: Props) {
         <div style={{ marginBottom: 24 }}>
           <div style={{ fontSize: 11, fontWeight: 800, color: T.wood600, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 10 }}>알림</div>
           <PushNotifManager workspaceId={workspaceId} />
-          <TestPushButton />
           <NotificationHourPicker
             workspaceId={workspaceId}
             initialHour={workspace?.notification_hour ?? 9}

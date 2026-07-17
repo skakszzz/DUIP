@@ -1,46 +1,40 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ensurePushSubscription } from '@/lib/push-client';
+import { usePushStatus } from '@/lib/use-push-status';
 import { useToast } from '@/components/toast';
 
 const DISMISS_KEY = 'push_banner_dismissed';
 
-// 권한이 아직 default일 때 홈 상단에 1회성으로 뜨는 알림 유도 배너
+// 권한이 default일 때만 뜨는 1회성 알림 유도 배너 (subscribed/denied/unsupported면 미노출)
 export default function PushBanner({ workspaceId }: { workspaceId: string }) {
   const { showToast } = useToast();
-  const [visible, setVisible] = useState(false);
+  const { status, enable } = usePushStatus(workspaceId);
+  const [dismissed, setDismissed] = useState(true);
 
   useEffect(() => {
-    if (typeof Notification === 'undefined') return;
-    if (Notification.permission !== 'default') return;
-    if (localStorage.getItem(DISMISS_KEY)) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setVisible(true);
+    setDismissed(!!localStorage.getItem(DISMISS_KEY));
   }, []);
 
-  if (!visible) return null;
+  if (status !== 'default' || dismissed) return null;
 
-  async function enable() {
+  async function handleEnable() {
     localStorage.setItem(DISMISS_KEY, '1');
-    setVisible(false);
-    try {
-      const ok = await ensurePushSubscription(workspaceId);
-      if (ok) showToast('알림이 켜졌어요 🌱');
-    } catch {
-      // 권한 거부 등 — 조용히 무시
-    }
+    setDismissed(true);
+    const ok = await enable();
+    if (ok) showToast('알림이 켜졌어요 🌱');
   }
 
   function dismiss() {
     localStorage.setItem(DISMISS_KEY, '1');
-    setVisible(false);
+    setDismissed(true);
   }
 
   return (
     <div style={{ position: 'relative', marginBottom: 12 }}>
       <button
-        onClick={enable}
+        onClick={handleEnable}
         style={{
           display: 'flex', alignItems: 'center', gap: 10, width: '100%',
           background: 'linear-gradient(135deg, rgba(154,124,201,0.12), rgba(242,198,110,0.14))',
