@@ -16,6 +16,7 @@ import { PlantGrow } from '@/components/plant-grow';
 import { EmptyHome } from '@/components/empty-states';
 import { RecurrenceEditor } from '@/components/recurrence-editor';
 import DateInput from '@/components/date-input';
+import PushBanner from '@/components/push-banner';
 import Link from 'next/link';
 
 const ItemEditModal = dynamic(() => import('@/components/item-edit-modal'), { ssr: false });
@@ -468,6 +469,9 @@ export default function TodayView({ workspaceId, userId, initialItems, members, 
         </div>
 
         <div style={{ padding: '0 16px' }}>
+          {/* ── 알림 권한 유도 배너 (1회성) ── */}
+          <PushBanner workspaceId={workspaceId} />
+
           {/* ── 파트너 없을 때 초대 배너 ── */}
           {members.length === 1 && !bannerDismissed && (
             <div style={{ position: 'relative', marginBottom: 12 }}>

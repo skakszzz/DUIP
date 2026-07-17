@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "PowerShell(npx tsc --noEmit)",
+      "PowerShell(git add lib/supabase-admin.ts app/api/cron/push-events/route.ts)",
+      "PowerShell(git add lib/push-send.ts app/api/push/test \"app/workspaces/[workspaceId]/settings/test-push-button.tsx\" \"app/workspaces/[workspaceId]/settings/page.tsx\")"
     ]
   }
 }

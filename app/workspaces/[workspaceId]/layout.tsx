@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import TabBar from '@/components/tab-bar';
 import ErrorBoundary from '@/components/error-boundary';
+import PushSync from '@/components/push-sync';
 
 interface Props {
   children: React.ReactNode;
@@ -17,6 +18,7 @@ export default async function WorkspaceLayout({ children, params }: Props) {
         </div>
       </Suspense>
       <TabBar workspaceId={workspaceId} />
+      <PushSync workspaceId={workspaceId} />
     </ErrorBoundary>
   );
 }

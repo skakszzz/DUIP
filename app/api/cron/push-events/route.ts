@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import webpush from 'web-push';
 import { createAdminClient } from '@/lib/supabase-admin';
-
-webpush.setVapidDetails(
-  process.env.VAPID_SUBJECT!,
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-  process.env.VAPID_PRIVATE_KEY!,
-);
+import { sendPushToSubs } from '@/lib/push-send';
 
 export const dynamic = 'force-dynamic';
 
@@ -74,19 +68,9 @@ export async function GET(req: NextRequest) {
       const title = isToday ? `📅 오늘: ${item.title}` : `⏰ 내일: ${item.title}`;
       const body  = isToday ? '오늘 예정된 일이 있어요!' : '내일 예정된 일이 있어요!';
 
-      const results = await Promise.allSettled(
-        subs.map((sub) =>
-          webpush.sendNotification(
-            { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
-            JSON.stringify({ title, body, tag: item.id })
-          )
-        )
-      );
-
-      for (const r of results) {
-        if (r.status === 'fulfilled') counts.sent++;
-        else counts.failed++;
-      }
+      const r = await sendPushToSubs(supabase, subs, { title, body, tag: item.id });
+      counts.sent += r.sent;
+      counts.failed += r.failed;
     }
   }
 
