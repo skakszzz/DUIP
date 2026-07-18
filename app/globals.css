@@ -91,7 +91,10 @@
 }
 
 :root {
-  --tabbar-h: calc(73px + env(safe-area-inset-bottom, 0px));
+  /* 탭바 하단 추가 여백 — 실기기 스크린샷 피드백으로 조정 (2026-07 필드테스트: 8px → 0px) */
+  --tabbar-bottom-gap: 0px;
+  /* 65px = 상단 보더 1 + pt 4 + 아이템 60. tab-bar.tsx 구조와 함께 유지할 것 */
+  --tabbar-h: calc(65px + var(--tabbar-bottom-gap) + env(safe-area-inset-bottom, 0px));
   --background: #FBF6EE;
   --foreground: #2A1B0E;
   --card: #FFFCF7;

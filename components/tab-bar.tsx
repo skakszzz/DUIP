@@ -77,7 +77,7 @@ export default function TabBar({ workspaceId }: Props) {
     >
       <div
         className="max-w-md mx-auto"
-        style={{ borderTop: '1px solid rgba(234,223,199,0.55)', paddingBottom: 'calc(8px + env(safe-area-inset-bottom, 0px))' }}
+        style={{ borderTop: '1px solid rgba(234,223,199,0.55)', paddingBottom: 'calc(var(--tabbar-bottom-gap, 0px) + env(safe-area-inset-bottom, 0px))' }}
       >
         <div className="flex items-center pt-1">
           {tabs.map(({ id, label, href, Icon, active }) => (

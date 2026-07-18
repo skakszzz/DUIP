@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useDragSheet } from '@/lib/use-drag-sheet';
 import { PlantArt } from '@/components/plant-art';
 import { createClient } from '@/lib/supabase/client';
@@ -51,6 +52,9 @@ const CATEGORIES: CategoryTab[] = ['all', 'succulent', 'houseplant', 'flowering'
 // 그리드 가로 스와이프 → 카테고리 전환 판정 기준 (실기기 피드백으로 조정)
 const SWIPE_MIN_X = 48;      // 수평 이동 최소 px
 const SWIPE_XY_RATIO = 1.5;  // 수평이 수직의 몇 배 이상일 때 스와이프로 인정
+
+// '나중에' 버튼 y 오프셋(px) — 그랩바·타이틀 라인 정렬 (기존 정적 위치 ~12px에서 +3px, 실기기 피드백으로 조정)
+const SKIP_BTN_TOP = 15;
 
 function PlantImage({ plantId, size }: { plantId: string; size: number }) {
   return <PlantArt id={plantId} stage={5} size={size} showPot={false} />;
@@ -112,7 +116,9 @@ export default function PlantPickerSheet({ workspaceId, year, month, initialSoil
     if (data) onDone(data as PickedPot);
   }
 
-  return (
+  // portal: duip-page-enter 등 조상 transform이 만드는 stacking context에 갇혀
+  // 탭바(z-50) 아래로 깔리는 것을 원천 차단 — 항상 body 직속에서 z-60으로 렌더
+  return createPortal(
     <div
       style={{ position: 'fixed', inset: 0, zIndex: 60, display: 'flex', alignItems: 'flex-end', background: 'rgba(42,27,14,0.50)' }}
       onClick={() => onSkip?.()}
@@ -122,14 +128,14 @@ export default function PlantPickerSheet({ workspaceId, year, month, initialSoil
         style={{ ...sheetStyle, width: '100%', maxWidth: 448, margin: '0 auto', background: '#FBF6EE', borderRadius: '28px 28px 0 0', padding: '0 16px calc(20px + env(safe-area-inset-bottom, 0px))', maxHeight: '90dvh', display: 'flex', flexDirection: 'column' }}
       >
         {/* 핸들 + 닫기 — 드래그 영역 */}
-        <div {...dragProps} style={{ ...dragProps.style, display: 'flex', alignItems: 'center', padding: '12px 0 8px', flexShrink: 0 }}>
+        <div {...dragProps} style={{ ...dragProps.style, position: 'relative', display: 'flex', alignItems: 'center', padding: '12px 0 8px', flexShrink: 0 }}>
           <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
             <div style={{ width: 36, height: 4, borderRadius: 2, background: '#D9C8AC' }}/>
           </div>
           {onSkip && (
             <button
               onClick={onSkip}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#C8B89A', fontSize: 13, padding: '0 4px', lineHeight: 1, position: 'absolute', right: 20 }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#C8B89A', fontSize: 13, padding: '0 4px', lineHeight: 1, position: 'absolute', top: SKIP_BTN_TOP, right: 20 }}
             >
               나중에
             </button>
@@ -324,6 +330,7 @@ export default function PlantPickerSheet({ workspaceId, year, month, initialSoil
           </>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
