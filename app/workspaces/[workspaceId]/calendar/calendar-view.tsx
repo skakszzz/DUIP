@@ -486,6 +486,7 @@ function CalAddSheet({ workspaceId, userId, members, presetDate, onClose, onAdde
           background: '#FBF6EE', borderRadius: '28px 28px 0 0',
           padding: '0 16px 0',
           maxHeight: '92svh', overflowY: 'auto',
+          overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch',
           paddingBottom: 'calc(16px + env(safe-area-inset-bottom, 0px))',
         }}
         onClick={(e) => e.stopPropagation()}

@@ -576,15 +576,15 @@ function MonthDetailSheet({ month, pot, completed, stat, onClose, onPickPlant }:
     <div className="fixed inset-0 z-[60] flex items-end" style={{ background: 'rgba(42,27,14,0.35)' }} onClick={onClose}>
       <div
         className="w-full max-w-md mx-auto"
-        style={{ ...sheetStyle, background: '#FBF6EE', borderRadius: '28px 28px 0 0', padding: '0 16px 40px', maxHeight: '80vh', overflowY: 'auto' }}
+        style={{ ...sheetStyle, background: '#FBF6EE', borderRadius: '28px 28px 0 0', padding: '0 16px calc(24px + env(safe-area-inset-bottom, 0px))', maxHeight: '80dvh', display: 'flex', flexDirection: 'column' }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div {...dragProps} style={{ ...dragProps.style, display: 'flex', justifyContent: 'center', padding: '12px 0 16px' }}>
+        <div {...dragProps} style={{ ...dragProps.style, display: 'flex', justifyContent: 'center', padding: '12px 0 16px', flexShrink: 0 }}>
           <div style={{ width: 36, height: 4, borderRadius: 2, background: '#D9C8AC' }}/>
         </div>
 
         {/* 히어로 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20, flexShrink: 0 }}>
           <div style={{ position: 'relative' }}>
             <PotCell stage={stage} plantId={pot?.plant_id ?? null} soilType={pot?.soil_type ?? 'rich'} size={64} preferArtwork/>
           </div>
@@ -621,7 +621,7 @@ function MonthDetailSheet({ month, pot, completed, stat, onClose, onPickPlant }:
         </div>
 
         {/* 통계 타일 */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 20 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 20, flexShrink: 0 }}>
           {[
             { label: '완료', value: completed, unit: '잎' },
             { label: '단계', value: stage, unit: '단계' },
@@ -634,13 +634,13 @@ function MonthDetailSheet({ month, pot, completed, stat, onClose, onPickPlant }:
           ))}
         </div>
 
-        {/* 항목 목록 */}
+        {/* 항목 목록 — 전용 스크롤 영역 (flex 자식이라 minHeight:0 필수) */}
         {stat && stat.items.length > 0 && (
           <>
-            <div style={{ fontSize: 11, fontWeight: 800, color: '#9A7553', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 10 }}>
+            <div style={{ fontSize: 11, fontWeight: 800, color: '#9A7553', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 10, flexShrink: 0 }}>
               이 달의 기록
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, overflowY: 'auto', minHeight: 0, overscrollBehavior: 'contain', touchAction: 'pan-y', WebkitOverflowScrolling: 'touch' }}>
               {stat.items.map((item) => (
                 <div key={item.id} style={{
                   display: 'flex', alignItems: 'center', gap: 10,
@@ -688,7 +688,7 @@ function TreeDetailSheet({ year, treeType, treeEmoji, treeName, totalCompleted, 
     <div className="fixed inset-0 z-[60] flex items-end" style={{ background: 'rgba(42,27,14,0.35)' }} onClick={onClose}>
       <div
         className="w-full max-w-md mx-auto"
-        style={{ ...sheetStyle, background: '#FBF6EE', borderRadius: '28px 28px 0 0', padding: '0 16px 40px', maxHeight: '85vh', overflowY: 'auto' }}
+        style={{ ...sheetStyle, background: '#FBF6EE', borderRadius: '28px 28px 0 0', padding: '0 16px calc(24px + env(safe-area-inset-bottom, 0px))', maxHeight: '85dvh', overflowY: 'auto', overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' }}
         onClick={(e) => e.stopPropagation()}
       >
         <div {...dragProps} style={{ ...dragProps.style, display: 'flex', justifyContent: 'center', padding: '12px 0 16px' }}>

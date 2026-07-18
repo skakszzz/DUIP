@@ -127,6 +127,7 @@ export default function ItemEditModal({ item, members, onClose, onUpdated, onDel
         style={{
           ...sheetStyle,
           maxHeight: '92svh', overflowY: 'auto',
+          overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch',
           paddingBottom: 'calc(16px + env(safe-area-inset-bottom, 0px))',
         }}
         onClick={(e) => e.stopPropagation()}

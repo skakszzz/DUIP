@@ -326,7 +326,7 @@ function MonthAddSheet({ workspaceId, userId, members, onClose, onAdded }: {
     <div className="fixed inset-0 z-[60] flex items-end" style={{ background: 'rgba(42,27,14,0.4)' }} onClick={onClose}>
       <div
         className="w-full max-w-md mx-auto"
-        style={{ background: '#FBF6EE', borderRadius: '28px 28px 0 0', padding: '0 16px 0', maxHeight: '92svh', overflowY: 'auto', paddingBottom: 'calc(32px + env(safe-area-inset-bottom, 0px))' }}
+        style={{ background: '#FBF6EE', borderRadius: '28px 28px 0 0', padding: '0 16px 0', maxHeight: '92svh', overflowY: 'auto', overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch', paddingBottom: 'calc(32px + env(safe-area-inset-bottom, 0px))' }}
         onClick={(e) => e.stopPropagation()}
       >
         <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 16px' }}>
