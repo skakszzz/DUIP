@@ -90,7 +90,7 @@ export default function PlantPickerSheet({ workspaceId, year, month, initialSoil
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        style={{ ...sheetStyle, width: '100%', maxWidth: 448, margin: '0 auto', background: '#FBF6EE', borderRadius: '28px 28px 0 0', padding: '0 16px 36px', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}
+        style={{ ...sheetStyle, width: '100%', maxWidth: 448, margin: '0 auto', background: '#FBF6EE', borderRadius: '28px 28px 0 0', padding: '0 16px calc(20px + env(safe-area-inset-bottom, 0px))', maxHeight: '90dvh', display: 'flex', flexDirection: 'column' }}
       >
         {/* 핸들 + 닫기 — 드래그 영역 */}
         <div {...dragProps} style={{ ...dragProps.style, display: 'flex', alignItems: 'center', padding: '12px 0 8px', flexShrink: 0 }}>
@@ -120,7 +120,7 @@ export default function PlantPickerSheet({ workspaceId, year, month, initialSoil
               흙에 따라 잘 자라는 식물이 달라져요
             </p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20, overflowY: 'auto', flex: 1 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20, overflowY: 'auto', flex: 1, minHeight: 0, overscrollBehavior: 'contain', touchAction: 'pan-y', WebkitOverflowScrolling: 'touch' }}>
               {soilVariants.map(soil => {
                 const on = selectedSoil === soil.id;
                 return (
@@ -233,8 +233,8 @@ export default function PlantPickerSheet({ workspaceId, year, month, initialSoil
               })}
             </div>
 
-            {/* 식물 그리드 */}
-            <div style={{ overflowY: 'auto', flex: 1, marginBottom: 14 }}>
+            {/* 식물 그리드 — 스크롤 전용 영역 (시트 드래그는 상단 핸들에서만) */}
+            <div style={{ overflowY: 'auto', flex: 1, minHeight: 0, marginBottom: 14, overscrollBehavior: 'contain', touchAction: 'pan-y', WebkitOverflowScrolling: 'touch' }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
                 {filteredPlants.map(plant => {
                   const on = selectedPlant === plant.id;
