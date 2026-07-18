@@ -17,6 +17,7 @@ import { EmptyHome } from '@/components/empty-states';
 import { RecurrenceEditor } from '@/components/recurrence-editor';
 import DateInput from '@/components/date-input';
 import PushBanner from '@/components/push-banner';
+import { PlantNameLabel } from '@/components/plant-name-label';
 import Link from 'next/link';
 
 const ItemEditModal = dynamic(() => import('@/components/item-edit-modal'), { ssr: false });
@@ -185,14 +186,15 @@ function MonthlyPlantCard({
       }}/>
 
       <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 14 }}>
-        {/* SVG 일러스트 + 성장 링 */}
-        <div style={{ flexShrink: 0 }} onClick={(e) => e.stopPropagation()}>
+        {/* SVG 일러스트 + 성장 링 + 식물 이름 라벨 */}
+        <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' }} onClick={(e) => e.stopPropagation()}>
           <PlantGrow
             plantId={monthlyPot?.plant_id ?? 'lavender'}
             stage={stage} size={88}
             leavesIn={pts - base} leavesNeeded={Math.max(1, next - base)}
             onBloom={onBloom}
           />
+          <PlantNameLabel plantId={monthlyPot?.plant_id ?? null} />
         </div>
 
         {/* 텍스트 */}
