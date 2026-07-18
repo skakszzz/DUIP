@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useDragSheet } from '@/lib/use-drag-sheet';
 import { PlantArt } from '@/components/plant-art';
 import { createClient } from '@/lib/supabase/client';
@@ -48,6 +48,10 @@ const CATEGORY_LABELS: Record<CategoryTab, string> = {
 };
 const CATEGORIES: CategoryTab[] = ['all', 'succulent', 'houseplant', 'flowering', 'herb', 'korean', 'cactus', 'climber', 'special'];
 
+// 그리드 가로 스와이프 → 카테고리 전환 판정 기준 (실기기 피드백으로 조정)
+const SWIPE_MIN_X = 48;      // 수평 이동 최소 px
+const SWIPE_XY_RATIO = 1.5;  // 수평이 수직의 몇 배 이상일 때 스와이프로 인정
+
 function PlantImage({ plantId, size }: { plantId: string; size: number }) {
   return <PlantArt id={plantId} stage={5} size={size} showPot={false} />;
 }
@@ -65,6 +69,31 @@ export default function PlantPickerSheet({ workspaceId, year, month, initialSoil
 
   const filteredPlants = category === 'all' ? plants : plants.filter(p => p.category === category);
   const selectedPlantData = selectedPlant ? plants.find(p => p.id === selectedPlant) : null;
+
+  // 그리드 가로 스와이프 → 이전/다음 카테고리 (끝에서는 멈춤, 세로 스크롤과 비충돌)
+  const swipeStart = useRef<{ x: number; y: number } | null>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
+  const tabsRef = useRef<HTMLDivElement>(null);
+
+  function handleGridTouchStart(e: React.TouchEvent) {
+    swipeStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  }
+
+  function handleGridTouchEnd(e: React.TouchEvent) {
+    const start = swipeStart.current;
+    swipeStart.current = null;
+    if (!start) return;
+    const dx = e.changedTouches[0].clientX - start.x;
+    const dy = e.changedTouches[0].clientY - start.y;
+    if (Math.abs(dx) < SWIPE_MIN_X || Math.abs(dx) <= Math.abs(dy) * SWIPE_XY_RATIO) return;
+    const idx = CATEGORIES.indexOf(category);
+    const next = dx < 0 ? Math.min(idx + 1, CATEGORIES.length - 1) : Math.max(idx - 1, 0);
+    if (next === idx) return;
+    setCategory(CATEGORIES[next]);
+    gridRef.current?.scrollTo({ top: 0 });
+    (tabsRef.current?.children[next] as HTMLElement | undefined)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  }
 
   async function handleConfirm() {
     if (!selectedSoil || !selectedPlant) return;
@@ -120,7 +149,8 @@ export default function PlantPickerSheet({ workspaceId, year, month, initialSoil
               흙에 따라 잘 자라는 식물이 달라져요
             </p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20, overflowY: 'auto', flex: 1, minHeight: 0, overscrollBehavior: 'contain', touchAction: 'pan-y', WebkitOverflowScrolling: 'touch' }}>
+            {/* minmax(0,1fr): 1fr(=minmax(auto,1fr))는 자식 min-content가 트랙을 밀어 가로 유격을 만듦 */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 12, marginBottom: 20, overflowY: 'auto', flex: 1, minHeight: 0, overscrollBehavior: 'contain', touchAction: 'pan-y', WebkitOverflowScrolling: 'touch' }}>
               {soilVariants.map(soil => {
                 const on = selectedSoil === soil.id;
                 return (
@@ -211,7 +241,7 @@ export default function PlantPickerSheet({ workspaceId, year, month, initialSoil
             </div>
 
             {/* 카테고리 탭 */}
-            <div style={{ display: 'flex', gap: 6, overflowX: 'auto', marginBottom: 12, flexShrink: 0, paddingBottom: 2 }}>
+            <div ref={tabsRef} style={{ display: 'flex', gap: 6, overflowX: 'auto', marginBottom: 12, flexShrink: 0, paddingBottom: 2 }}>
               {CATEGORIES.map(cat => {
                 const on = category === cat;
                 return (
@@ -233,9 +263,15 @@ export default function PlantPickerSheet({ workspaceId, year, month, initialSoil
               })}
             </div>
 
-            {/* 식물 그리드 — 스크롤 전용 영역 (시트 드래그는 상단 핸들에서만) */}
-            <div style={{ overflowY: 'auto', flex: 1, minHeight: 0, marginBottom: 14, overscrollBehavior: 'contain', touchAction: 'pan-y', WebkitOverflowScrolling: 'touch' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+            {/* 식물 그리드 — 스크롤 전용 영역 (시트 드래그는 상단 핸들에서만), 가로 스와이프로 카테고리 전환 */}
+            <div
+              ref={gridRef}
+              onTouchStart={handleGridTouchStart}
+              onTouchEnd={handleGridTouchEnd}
+              onTouchCancel={() => { swipeStart.current = null; }}
+              style={{ overflowY: 'auto', flex: 1, minHeight: 0, marginBottom: 14, overscrollBehavior: 'contain', touchAction: 'pan-y', WebkitOverflowScrolling: 'touch' }}
+            >
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8 }}>
                 {filteredPlants.map(plant => {
                   const on = selectedPlant === plant.id;
                   return (

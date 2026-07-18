@@ -30,11 +30,19 @@ export function useDragSheet(onClose: () => void) {
     }
   }
 
+  // iOS가 터치를 취소하면(시스템 제스처·전화 등) touchend가 안 와서
+  // 드래그 상태가 잔류 → 시트가 밀린 채 고정. 닫지 않고 원위치만 복구.
+  function onTouchCancel() {
+    active.current = false;
+    setDragY(0);
+  }
+
   /** 드래그 핸들 영역에 spread할 props */
   const dragProps = {
     onTouchStart,
     onTouchMove,
     onTouchEnd,
+    onTouchCancel,
     style: {
       touchAction: 'none' as const,
       cursor: 'grab' as const,
