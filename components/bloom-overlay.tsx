@@ -1,5 +1,7 @@
 'use client';
 
+import { createPortal } from 'react-dom';
+
 export interface BloomContent {
   plantEmoji?: string;
   stageLabel?: string;
@@ -28,7 +30,9 @@ export default function BloomOverlay({ content, onClose, onGardenClick }: Props)
     body = '오늘의 모든 할 일을 완료했어요!',
   } = content ?? {};
 
-  return (
+  if (typeof document === 'undefined') return null;
+
+  return createPortal(
     <div className="fixed inset-0 z-[60]" onClick={onClose}>
       {/* 스크림 */}
       <div
@@ -102,6 +106,7 @@ export default function BloomOverlay({ content, onClose, onGardenClick }: Props)
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

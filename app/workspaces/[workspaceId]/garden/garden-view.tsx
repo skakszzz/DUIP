@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
-import { useDragSheet } from '@/lib/use-drag-sheet';
+import FloatingSheet from '@/components/floating-sheet';
 import { EmptyGarden } from '@/components/empty-states';
 import { useRouter } from 'next/navigation';
 import { plants } from '@/lib/data/plants';
@@ -571,21 +571,11 @@ function MonthDetailSheet({ month, pot, completed, stat, onClose, onPickPlant }:
   onClose: () => void;
   onPickPlant: () => void;
 }) {
-  const { dragProps, sheetStyle } = useDragSheet(onClose);
   const stage = pot ? stageFromPoints(completed) : 1;
   const plant = plants.find((p) => p.id === pot?.plant_id);
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-end" style={{ background: 'rgba(42,27,14,0.35)' }} onClick={onClose}>
-      <div
-        className="w-full max-w-md mx-auto"
-        style={{ ...sheetStyle, background: '#FBF6EE', borderRadius: '28px 28px 0 0', padding: '0 16px calc(24px + env(safe-area-inset-bottom, 0px))', maxHeight: '80dvh', display: 'flex', flexDirection: 'column' }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div {...dragProps} style={{ ...dragProps.style, display: 'flex', justifyContent: 'center', padding: '12px 0 16px', flexShrink: 0 }}>
-          <div style={{ width: 36, height: 4, borderRadius: 2, background: '#D9C8AC' }}/>
-        </div>
-
+    <FloatingSheet onClose={onClose} scrim="rgba(42,27,14,0.35)" maxHeight="80dvh" padBottom={24} bodyScroll={false}>
         {/* 히어로 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20, flexShrink: 0 }}>
           <div style={{ position: 'relative' }}>
@@ -667,8 +657,7 @@ function MonthDetailSheet({ month, pot, completed, stat, onClose, onPickPlant }:
             </div>
           </>
         )}
-      </div>
-    </div>
+    </FloatingSheet>
   );
 }
 
@@ -686,18 +675,8 @@ function TreeDetailSheet({ year, treeType, treeEmoji, treeName, totalCompleted, 
   onTreeNameToggle: (v: boolean) => void;
   onClose: () => void;
 }) {
-  const { dragProps, sheetStyle } = useDragSheet(onClose);
   return (
-    <div className="fixed inset-0 z-[60] flex items-end" style={{ background: 'rgba(42,27,14,0.35)' }} onClick={onClose}>
-      <div
-        className="w-full max-w-md mx-auto"
-        style={{ ...sheetStyle, background: '#FBF6EE', borderRadius: '28px 28px 0 0', padding: '0 16px calc(24px + env(safe-area-inset-bottom, 0px))', maxHeight: '85dvh', overflowY: 'auto', overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div {...dragProps} style={{ ...dragProps.style, display: 'flex', justifyContent: 'center', padding: '12px 0 16px' }}>
-          <div style={{ width: 36, height: 4, borderRadius: 2, background: '#D9C8AC' }}/>
-        </div>
-
+    <FloatingSheet onClose={onClose} scrim="rgba(42,27,14,0.35)" maxHeight="85dvh" padBottom={24}>
         {/* 히어로 */}
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
           <div style={{ marginBottom: 8, display: 'flex', justifyContent: 'center' }}>
@@ -805,8 +784,7 @@ function TreeDetailSheet({ year, treeType, treeEmoji, treeName, totalCompleted, 
             );
           })}
         </div>
-      </div>
-    </div>
+    </FloatingSheet>
   );
 }
 

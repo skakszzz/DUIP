@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { useDragSheet } from '@/lib/use-drag-sheet';
+import FloatingSheet from '@/components/floating-sheet';
 import { createClient } from '@/lib/supabase/client';
 import type { ItemType, RecurrenceRule } from '@/lib/types';
 import { RecurrenceEditor } from './recurrence-editor';
@@ -56,7 +56,6 @@ export const TIMEFRAME_OPTIONS = [
 
 export default function ItemEditModal({ item, members, onClose, onUpdated, onDeleted, recurrenceSlot }: Props) {
   const { showToast } = useToast();
-  const { dragProps, sheetStyle } = useDragSheet(onClose);
   const composingRef = useRef(false);
   const [type, setType]               = useState<ItemType>(item.type);
   const [title, setTitle]             = useState(item.title);
@@ -121,20 +120,7 @@ export default function ItemEditModal({ item, members, onClose, onUpdated, onDel
   }
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-end z-[60]" onClick={onClose}>
-      <div
-        className="w-full bg-[#FBF6EE] rounded-t-3xl p-6 max-w-md mx-auto"
-        style={{
-          ...sheetStyle,
-          maxHeight: '92svh', overflowY: 'auto',
-          overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch',
-          paddingBottom: 'calc(16px + env(safe-area-inset-bottom, 0px))',
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div {...dragProps} style={{ ...dragProps.style, display: 'flex', justifyContent: 'center', paddingBottom: 20 }}>
-          <div className="w-10 h-1 bg-[#E8D5B8] rounded-full" />
-        </div>
+    <FloatingSheet onClose={onClose} scrim="rgba(0,0,0,0.40)">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-base font-semibold text-[#5C3A1F]">항목 수정</h2>
           {onDeleted && (
@@ -277,7 +263,6 @@ export default function ItemEditModal({ item, members, onClose, onUpdated, onDel
             {saving ? '저장 중...' : '저장하기'}
           </button>
         </form>
-      </div>
-    </div>
+    </FloatingSheet>
   );
 }

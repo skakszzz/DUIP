@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import FloatingSheet from '@/components/floating-sheet';
 
 const T = {
   cream: '#FBF6EE', paper: '#FFFCF7',
@@ -44,22 +45,15 @@ export default function LeaveWorkspaceButton({ workspaceId, workspaceName, userI
       </button>
 
       {open && (
-        <div
-          onClick={() => !leaving && setOpen(false)}
-          style={{ position: 'fixed', inset: 0, zIndex: 90, background: 'rgba(42,27,14,0.45)', display: 'flex', alignItems: 'flex-end' }}
+        <FloatingSheet
+          onClose={() => !leaving && setOpen(false)}
+          scrim="rgba(42,27,14,0.45)"
+          maxWidth={440}
+          padX={20}
+          padBottom={40}
+          background={T.cream}
+          draggable={false}
         >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              width: '100%', maxWidth: 440, margin: '0 auto',
-              background: T.cream, borderRadius: '28px 28px 0 0',
-              padding: '0 20px calc(40px + env(safe-area-inset-bottom))',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '14px 0 24px' }}>
-              <div style={{ width: 36, height: 4, borderRadius: 2, background: T.taupe }} />
-            </div>
-
             <div style={{ fontSize: 32, textAlign: 'center', marginBottom: 12 }}>🍂</div>
             <div style={{ fontSize: 20, fontWeight: 800, color: T.ink, textAlign: 'center', letterSpacing: '-0.02em', marginBottom: 8 }}>
               동산을 나갈까요?
@@ -100,8 +94,7 @@ export default function LeaveWorkspaceButton({ workspaceId, workspaceName, userI
                 취소
               </button>
             </div>
-          </div>
-        </div>
+        </FloatingSheet>
       )}
     </>
   );

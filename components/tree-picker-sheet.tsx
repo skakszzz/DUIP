@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useDragSheet } from '@/lib/use-drag-sheet';
+import FloatingSheet from '@/components/floating-sheet';
 import { createClient } from '@/lib/supabase/client';
 import type { TreeType } from '@/lib/types';
 
@@ -21,7 +21,6 @@ const TREES: { id: TreeType; name: string; metaphor: string }[] = [
 ];
 
 export default function TreePickerSheet({ workspaceId, currentYear, onDone, onSkip }: Props) {
-  const { dragProps, sheetStyle } = useDragSheet(() => onSkip?.());
   const [selected, setSelected] = useState<TreeType | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -38,29 +37,18 @@ export default function TreePickerSheet({ workspaceId, currentYear, onDone, onSk
   }
 
   return (
-    <div
-      style={{ position: 'fixed', inset: 0, zIndex: 60, display: 'flex', alignItems: 'flex-end', background: 'rgba(42,27,14,0.50)' }}
-      onClick={() => onSkip?.()}
+    <FloatingSheet
+      onClose={() => onSkip?.()}
+      scrim="rgba(42,27,14,0.50)"
+      headerRight={onSkip && (
+        <button
+          onClick={onSkip}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#C8B89A', fontSize: 13, padding: '0 4px', lineHeight: 1 }}
+        >
+          나중에
+        </button>
+      )}
     >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{ ...sheetStyle, width: '100%', maxWidth: 448, margin: '0 auto', background: '#FBF6EE', borderRadius: '28px 28px 0 0', padding: '0 16px 36px' }}
-      >
-        {/* 핸들 + 나중에 — 드래그 영역 */}
-        <div {...dragProps} style={{ ...dragProps.style, display: 'flex', alignItems: 'center', padding: '12px 0 16px', position: 'relative' }}>
-          <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
-            <div style={{ width: 36, height: 4, borderRadius: 2, background: '#D9C8AC' }}/>
-          </div>
-          {onSkip && (
-            <button
-              onClick={onSkip}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#C8B89A', fontSize: 13, padding: '0 4px', lineHeight: 1, position: 'absolute', right: 4 }}
-            >
-              나중에
-            </button>
-          )}
-        </div>
-
         {/* 배경 장식 */}
         <div style={{
           position: 'relative',
@@ -140,7 +128,6 @@ export default function TreePickerSheet({ workspaceId, currentYear, onDone, onSk
         >
           {loading ? '저장 중...' : `${currentYear}년 보호수로 지정하기 🌳`}
         </button>
-      </div>
-    </div>
+    </FloatingSheet>
   );
 }

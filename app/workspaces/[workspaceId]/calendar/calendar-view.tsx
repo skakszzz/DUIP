@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { useDragSheet } from '@/lib/use-drag-sheet';
+import FloatingSheet from '@/components/floating-sheet';
 import { EmptyCalendar } from '@/components/empty-states';
 import { createClient } from '@/lib/supabase/client';
 import { kstNow } from '@/lib/dates';
@@ -440,7 +440,6 @@ function CalAddSheet({ workspaceId, userId, members, presetDate, onClose, onAdde
 }) {
   const { showToast } = useToast();
   const router = useRouter();
-  const { dragProps, sheetStyle } = useDragSheet(onClose);
   const composingRef = useRef(false);
   const [type, setType] = useState<ItemType>('TODO');
   const [title, setTitle] = useState('');
@@ -478,22 +477,7 @@ function CalAddSheet({ workspaceId, userId, members, presetDate, onClose, onAdde
   }
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-end" style={{ background: 'rgba(42,27,14,0.4)' }} onClick={onClose}>
-      <div
-        className="w-full max-w-md mx-auto"
-        style={{
-          ...sheetStyle,
-          background: '#FBF6EE', borderRadius: '28px 28px 0 0',
-          padding: '0 16px 0',
-          maxHeight: '92svh', overflowY: 'auto',
-          overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch',
-          paddingBottom: 'calc(16px + env(safe-area-inset-bottom, 0px))',
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div {...dragProps} style={{ ...dragProps.style, display: 'flex', justifyContent: 'center', padding: '12px 0 16px' }}>
-          <div style={{ width: 36, height: 4, borderRadius: 2, background: '#D9C8AC' }}/>
-        </div>
+    <FloatingSheet onClose={onClose} scrim="rgba(42,27,14,0.40)">
         <p style={{ fontSize: 11, fontWeight: 800, color: '#9A7553', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 12 }}>
           새 항목 추가
         </p>
@@ -615,7 +599,6 @@ function CalAddSheet({ workspaceId, userId, members, presetDate, onClose, onAdde
             {loading ? '추가 중...' : '추가하기'}
           </button>
         </form>
-      </div>
-    </div>
+    </FloatingSheet>
   );
 }
