@@ -82,6 +82,9 @@ function PotCell({ stage, plantId, soilType, size = 52, preferArtwork }: { stage
 
 const VALID_TREE_TYPES = ['cherry', 'olive', 'ginkgo', 'pine', 'maple'];
 
+// 동산 무대 보호수 y 위치(px) — 실기기 스크린샷 피드백으로 조정 (2026-07 필드테스트: -48 → -44, 4px 아래로)
+const TREE_TOP_OFFSET = -44;
+
 
 // 보호수 이미지 원본 비율 상수
 // trees/ 이미지는 1024×1536 (너비:높이 = 2:3) — 의도된 세로형 비율
@@ -300,7 +303,7 @@ export default function GardenView({ workspaceId, year, currentMonth, pots: init
         onClick={() => { if (!isDragActive) setShowTreeSheet(true); }}
         style={{
           position: 'absolute',
-          left: '50%', top: -48,
+          left: '50%', top: TREE_TOP_OFFSET,
           transform: 'translateX(-50%)',
           background: 'none', border: 'none', cursor: 'pointer',
           filter: 'drop-shadow(0 12px 32px rgba(0,0,0,0.35))',
