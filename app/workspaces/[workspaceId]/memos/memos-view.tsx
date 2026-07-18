@@ -3,7 +3,7 @@
 // 본문이 카드를 채우고, 제목·작성자·날짜는 아래 얇은 한 줄로.
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import {
@@ -11,6 +11,12 @@ import {
   type MemoRow, type MemoMember, type MemoBlock, type TintKey,
 } from '@/components/memo-shared';
 import { useToast } from '@/components/toast';
+import FloatingSheet from '@/components/floating-sheet';
+
+// 리스트·카드에서 꾹 눌러도 브라우저 텍스트 선택/복사 메뉴가 뜨지 않게
+const NO_SELECT: React.CSSProperties = {
+  userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none',
+};
 
 interface Props {
   workspaceId: string;
@@ -53,8 +59,43 @@ function previewOf(blocks: MemoBlock[]) {
 export default function MemosView({ workspaceId, userId, workspaceName, members, initialMemos }: Props) {
   const { showToast } = useToast();
   const router = useRouter();
-  const [memos] = useState<MemoRow[]>(initialMemos);
+  const [memos, setMemos] = useState<MemoRow[]>(initialMemos);
   const [creating, setCreating] = useState(false);
+
+  // 선택(다중 삭제) 모드
+  const [selectMode, setSelectMode] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  function enterSelect(id: string) {
+    setSelectMode(true);
+    setSelected(new Set([id]));
+  }
+  function toggle(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
+  function exitSelect() {
+    setSelectMode(false);
+    setSelected(new Set());
+  }
+
+  async function deleteSelected() {
+    if (selected.size === 0 || deleting) return;
+    setDeleting(true);
+    const supabase = createClient();
+    const ids = [...selected];
+    const { error } = await supabase.from('memos').delete().in('id', ids);
+    setDeleting(false);
+    if (error) { showToast('삭제 실패: ' + error.message, 'error'); return; }
+    setMemos((prev) => prev.filter((m) => !selected.has(m.id)));
+    setConfirmDelete(false);
+    exitSelect();
+  }
 
   async function createMemo() {
     if (creating) return;
@@ -76,11 +117,48 @@ export default function MemosView({ workspaceId, userId, workspaceName, members,
     <div className="duip-page-enter" style={{ minHeight: '100dvh', background: T.cream }}>
       <div style={{ maxWidth: 448, margin: '0 auto', paddingTop: 'max(env(safe-area-inset-top), 52px)', paddingLeft: 16, paddingRight: 16, paddingBottom: 110 }}>
         {/* 헤더 */}
-        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 16 }}>
-          <div>
-            <div style={{ fontSize: 24, fontWeight: 800, color: T.ink, letterSpacing: '-0.03em', lineHeight: 1.1 }}>메모</div>
-            <div style={{ fontSize: 12, color: T.inkMute, marginTop: 3, fontWeight: 600 }}>{workspaceName} · {memos.length}개</div>
-          </div>
+        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 16, minHeight: 44, ...NO_SELECT }}>
+          {!selectMode ? (
+            <>
+              <div>
+                <div style={{ fontSize: 24, fontWeight: 800, color: T.ink, letterSpacing: '-0.03em', lineHeight: 1.1 }}>메모</div>
+                <div style={{ fontSize: 12, color: T.inkMute, marginTop: 3, fontWeight: 600 }}>{workspaceName} · {memos.length}개</div>
+              </div>
+              {memos.length > 0 && (
+                <button
+                  onClick={() => setSelectMode(true)}
+                  style={{ height: 34, padding: '0 14px', borderRadius: 9999, border: `1px solid ${T.bisque}`, background: T.paper, color: T.wood700, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}
+                >
+                  선택
+                </button>
+              )}
+            </>
+          ) : (
+            <>
+              <div>
+                <div style={{ fontSize: 22, fontWeight: 800, color: T.ink, letterSpacing: '-0.03em', lineHeight: 1.1 }}>
+                  {selected.size}개 선택
+                </div>
+                <div style={{ fontSize: 12, color: T.inkMute, marginTop: 3, fontWeight: 600 }}>탭해서 추가 · 꾹 눌러 시작</div>
+              </div>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <button
+                  onClick={exitSelect}
+                  style={{ height: 34, padding: '0 14px', borderRadius: 9999, border: `1px solid ${T.bisque}`, background: T.paper, color: T.inkMute, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}
+                >
+                  취소
+                </button>
+                <button
+                  onClick={() => selected.size > 0 && setConfirmDelete(true)}
+                  disabled={selected.size === 0}
+                  aria-label="선택 삭제"
+                  style={{ width: 38, height: 38, borderRadius: 9999, border: 'none', background: selected.size ? '#C77C6A' : '#EADFC7', color: '#fff', cursor: selected.size ? 'pointer' : 'default', display: 'grid', placeItems: 'center', transition: 'background 0.15s' }}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7" /><path d="M10 11v6M14 11v6" /></svg>
+                </button>
+              </div>
+            </>
+          )}
         </div>
 
         {/* 빈 상태 */}
@@ -97,92 +175,187 @@ export default function MemosView({ workspaceId, userId, workspaceName, members,
         ) : (
           /* 그리드 */
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridAutoRows: 192, gap: 12 }}>
-            {memos.map((m) => {
-              const tint = MEMO_TINTS[m.tint] ?? MEMO_TINTS.paper;
-              const pv = previewOf(m.blocks);
-              const authors = blockAuthors(m.blocks, m.created_by);
-              return (
-                <button
-                  key={m.id}
-                  onClick={() => router.push(`/workspaces/${workspaceId}/memos/${m.id}`)}
-                  style={{
-                    textAlign: 'left', cursor: 'pointer', padding: 0,
-                    background: T.paper, borderRadius: 18, overflow: 'hidden',
-                    boxShadow: T.sh2, border: `1px solid ${T.bisque}66`,
-                    borderTop: `3px solid ${tint.edge}`,
-                    display: 'flex', flexDirection: 'column',
-                  }}
-                >
-                  {/* 본문 hero */}
-                  {pv.type === 'draw' ? (
-                    <div style={{ flex: 1, display: 'grid', placeItems: 'center', background: tint.bg }}>
-                      {pv.draw.strokes?.length
-                        ? <StrokesSvg strokes={pv.draw.strokes} w={150} h={200} />
-                        : <Doodle kind="plants" size={104} />}
-                    </div>
-                  ) : pv.type === 'check' ? (
-                    <div style={{ flex: 1, padding: '12px 13px 8px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-                      {pv.check.items.slice(0, 4).map((it) => (
-                        <div key={it.id} style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                          <span style={{
-                            width: 15, height: 15, borderRadius: 5, flex: '0 0 auto',
-                            background: it.done ? T.wood700 : 'transparent',
-                            boxShadow: it.done ? 'none' : `inset 0 0 0 1.6px ${tint.edge}`,
-                            display: 'grid', placeItems: 'center',
-                          }}>
-                            {it.done && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5 10 17.5 19 7.5" /></svg>}
-                          </span>
-                          <span style={{
-                            fontSize: 12.5, color: it.done ? T.inkFade : T.inkSoft,
-                            textDecoration: it.done ? 'line-through' : 'none', textDecorationColor: T.inkFade,
-                            letterSpacing: '-0.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                          }}>{it.text || '항목'}</span>
-                        </div>
-                      ))}
-                    </div>
-                  ) : pv.type === 'text' ? (
-                    <div style={{ flex: 1, padding: '12px 13px 8px' }}>
-                      <div style={{
-                        fontSize: 12.5, color: T.inkSoft, lineHeight: 1.55, letterSpacing: '-0.01em', whiteSpace: 'pre-line',
-                        display: '-webkit-box', WebkitLineClamp: 6, WebkitBoxOrient: 'vertical', overflow: 'hidden',
-                      }}>{pv.text}</div>
-                    </div>
-                  ) : (
-                    <div style={{ flex: 1, display: 'grid', placeItems: 'center', background: tint.bg, color: tint.ink, fontSize: 13, fontWeight: 700 }}>
-                      비어 있어요
-                    </div>
-                  )}
-
-                  {/* 얇은 메타 푸터 */}
-                  <div style={{ height: 34, flex: '0 0 auto', padding: '0 11px', background: tint.bg, borderTop: `1px solid ${tint.edge}66`, display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <div style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 800, color: T.ink, letterSpacing: '-0.02em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {m.title || '제목 없음'}
-                    </div>
-                    <MemoAvatars authors={authors} members={members} size={16} />
-                    <div style={{ fontSize: 9.5, color: tint.ink, fontWeight: 700, opacity: 0.85, whiteSpace: 'nowrap', flex: '0 0 auto' }}>{relDate(m.updated_at)}</div>
-                  </div>
-                </button>
-              );
-            })}
+            {memos.map((m) => (
+              <MemoCard
+                key={m.id}
+                memo={m}
+                members={members}
+                selectMode={selectMode}
+                selectedOn={selected.has(m.id)}
+                onOpen={() => router.push(`/workspaces/${workspaceId}/memos/${m.id}`)}
+                onLongPress={() => enterSelect(m.id)}
+                onToggle={() => toggle(m.id)}
+              />
+            ))}
           </div>
         )}
       </div>
 
-      {/* 새 메모 FAB */}
-      <button
-        onClick={createMemo}
-        disabled={creating}
-        style={{
-          position: 'fixed', right: 'max(18px, calc(50% - 206px))', bottom: 'calc(84px + env(safe-area-inset-bottom, 0px))', zIndex: 40,
-          width: 58, height: 58, borderRadius: 9999, border: 'none', cursor: 'pointer',
-          background: T.wood800, color: T.cream, opacity: creating ? 0.6 : 1,
-          display: 'grid', placeItems: 'center',
-          boxShadow: '0 16px 32px rgba(74,46,22,0.32), 0 4px 10px rgba(74,46,22,0.18)',
-        }}
-        aria-label="새 메모"
-      >
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={T.cream} strokeWidth={2.4} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
-      </button>
+      {/* 새 메모 FAB — 선택 모드에선 숨김 */}
+      {!selectMode && (
+        <button
+          onClick={createMemo}
+          disabled={creating}
+          style={{
+            position: 'fixed', right: 'max(18px, calc(50% - 206px))', bottom: 'calc(84px + env(safe-area-inset-bottom, 0px))', zIndex: 40,
+            width: 58, height: 58, borderRadius: 9999, border: 'none', cursor: 'pointer',
+            background: T.wood800, color: T.cream, opacity: creating ? 0.6 : 1,
+            display: 'grid', placeItems: 'center',
+            boxShadow: '0 16px 32px rgba(74,46,22,0.32), 0 4px 10px rgba(74,46,22,0.18)',
+          }}
+          aria-label="새 메모"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={T.cream} strokeWidth={2.4} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
+        </button>
+      )}
+
+      {/* 다중 삭제 확인 */}
+      {confirmDelete && (
+        <FloatingSheet onClose={() => !deleting && setConfirmDelete(false)} scrim="rgba(42,27,14,0.45)" draggable={false}>
+          <div style={{ fontSize: 32, textAlign: 'center', marginBottom: 12 }}>🗑️</div>
+          <div style={{ fontSize: 20, fontWeight: 800, color: T.ink, textAlign: 'center', letterSpacing: '-0.02em', marginBottom: 8 }}>
+            {selected.size}개 메모를 삭제할까요?
+          </div>
+          <div style={{ fontSize: 13.5, color: T.inkMute, textAlign: 'center', lineHeight: 1.6, marginBottom: 28 }}>
+            삭제한 메모는 되돌릴 수 없어요.
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <button
+              onClick={deleteSelected}
+              disabled={deleting}
+              style={{ height: 50, borderRadius: 9999, border: 'none', background: '#C77C6A', color: '#fff', fontSize: 15, fontWeight: 800, cursor: 'pointer', opacity: deleting ? 0.5 : 1 }}
+            >
+              {deleting ? '삭제 중…' : '네, 삭제할게요'}
+            </button>
+            <button
+              onClick={() => setConfirmDelete(false)}
+              disabled={deleting}
+              style={{ height: 46, borderRadius: 9999, border: `1.5px solid ${T.bisque}`, background: T.paper, color: T.inkMute, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}
+            >
+              취소
+            </button>
+          </div>
+        </FloatingSheet>
+      )}
     </div>
+  );
+}
+
+// ── 메모 카드 (롱프레스 선택 + 탭 열기/토글) ────────────────────────
+function MemoCard({ memo, members, selectMode, selectedOn, onOpen, onLongPress, onToggle }: {
+  memo: MemoRow;
+  members: MemoMember[];
+  selectMode: boolean;
+  selectedOn: boolean;
+  onOpen: () => void;
+  onLongPress: () => void;
+  onToggle: () => void;
+}) {
+  const tint = MEMO_TINTS[memo.tint] ?? MEMO_TINTS.paper;
+  const pv = previewOf(memo.blocks);
+  const authors = blockAuthors(memo.blocks, memo.created_by);
+
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const startPos = useRef<{ x: number; y: number } | null>(null);
+  const longFired = useRef(false);
+
+  function clearTimer() { if (timer.current) { clearTimeout(timer.current); timer.current = null; } }
+  function onPointerDown(e: React.PointerEvent) {
+    longFired.current = false;
+    startPos.current = { x: e.clientX, y: e.clientY };
+    clearTimer();
+    timer.current = setTimeout(() => { longFired.current = true; onLongPress(); }, 450);
+  }
+  function onPointerMove(e: React.PointerEvent) {
+    if (!startPos.current) return;
+    if (Math.abs(e.clientX - startPos.current.x) > 10 || Math.abs(e.clientY - startPos.current.y) > 10) clearTimer();
+  }
+  function handleClick() {
+    clearTimer();
+    if (longFired.current) { longFired.current = false; return; } // 롱프레스가 처리함
+    if (selectMode) onToggle(); else onOpen();
+  }
+
+  return (
+    <button
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={clearTimer}
+      onPointerCancel={clearTimer}
+      onClick={handleClick}
+      onContextMenu={(e) => e.preventDefault()}
+      style={{
+        position: 'relative',
+        textAlign: 'left', cursor: 'pointer', padding: 0,
+        background: T.paper, borderRadius: 18, overflow: 'hidden',
+        boxShadow: T.sh2, border: `1px solid ${T.bisque}66`,
+        borderTop: `3px solid ${tint.edge}`,
+        outline: selectedOn ? '2.5px solid #9A7CC9' : 'none', outlineOffset: -1,
+        display: 'flex', flexDirection: 'column',
+        ...NO_SELECT,
+      }}
+    >
+      {/* 본문 hero */}
+      {pv.type === 'draw' ? (
+        <div style={{ flex: 1, display: 'grid', placeItems: 'center', background: tint.bg }}>
+          {pv.draw.strokes?.length
+            ? <StrokesSvg strokes={pv.draw.strokes} w={150} h={200} />
+            : <Doodle kind="plants" size={104} />}
+        </div>
+      ) : pv.type === 'check' ? (
+        <div style={{ flex: 1, padding: '12px 13px 8px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {pv.check.items.slice(0, 4).map((it) => (
+            <div key={it.id} style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+              <span style={{
+                width: 15, height: 15, borderRadius: 5, flex: '0 0 auto',
+                background: it.done ? T.wood700 : 'transparent',
+                boxShadow: it.done ? 'none' : `inset 0 0 0 1.6px ${tint.edge}`,
+                display: 'grid', placeItems: 'center',
+              }}>
+                {it.done && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5 10 17.5 19 7.5" /></svg>}
+              </span>
+              <span style={{
+                fontSize: 12.5, color: it.done ? T.inkFade : T.inkSoft,
+                textDecoration: it.done ? 'line-through' : 'none', textDecorationColor: T.inkFade,
+                letterSpacing: '-0.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+              }}>{it.text || '항목'}</span>
+            </div>
+          ))}
+        </div>
+      ) : pv.type === 'text' ? (
+        <div style={{ flex: 1, padding: '12px 13px 8px' }}>
+          <div style={{
+            fontSize: 12.5, color: T.inkSoft, lineHeight: 1.55, letterSpacing: '-0.01em', whiteSpace: 'pre-line',
+            display: '-webkit-box', WebkitLineClamp: 6, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+          }}>{pv.text}</div>
+        </div>
+      ) : (
+        <div style={{ flex: 1, display: 'grid', placeItems: 'center', background: tint.bg, color: tint.ink, fontSize: 13, fontWeight: 700 }}>
+          비어 있어요
+        </div>
+      )}
+
+      {/* 얇은 메타 푸터 */}
+      <div style={{ height: 34, flex: '0 0 auto', padding: '0 11px', background: tint.bg, borderTop: `1px solid ${tint.edge}66`, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 800, color: T.ink, letterSpacing: '-0.02em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          {memo.title || '제목 없음'}
+        </div>
+        <MemoAvatars authors={authors} members={members} size={16} />
+        <div style={{ fontSize: 9.5, color: tint.ink, fontWeight: 700, opacity: 0.85, whiteSpace: 'nowrap', flex: '0 0 auto' }}>{relDate(memo.updated_at)}</div>
+      </div>
+
+      {/* 선택 표시 */}
+      {selectMode && (
+        <div style={{
+          position: 'absolute', top: 8, right: 8,
+          width: 24, height: 24, borderRadius: 9999,
+          background: selectedOn ? '#9A7CC9' : 'rgba(255,252,247,0.92)',
+          boxShadow: selectedOn ? '0 2px 6px rgba(74,46,22,0.22)' : `inset 0 0 0 1.5px ${T.taupe}`,
+          display: 'grid', placeItems: 'center',
+        }}>
+          {selectedOn && <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5 10 17.5 19 7.5" /></svg>}
+        </div>
+      )}
+    </button>
   );
 }
