@@ -7,19 +7,36 @@ import { createClient } from '@/lib/supabase/client';
 import { plants } from '@/lib/data/plants';
 import type { PlantCategory } from '@/lib/data/plants';
 import { soilVariants } from '@/lib/data/pots';
-import { PLANT_EMOJIS } from '@/lib/data/plant-emojis';
 import { PotView, POT_VIEW_TOP_OVERFLOW } from '@/components/pot-view';
 import type { SoilType } from '@/lib/types';
+
+// 화분 선택의 유일한 시트 — 홈·동산 공용. 픽커 구현이 두 곳이면 안 된다.
+export interface PickedPot {
+  id: string;
+  month: number;
+  plant_id: string;
+  soil_type: SoilType;
+  growth_points: number;
+  pos_x: number | null;
+  pos_y: number | null;
+}
 
 interface Props {
   workspaceId: string;
   year: number;
   month: number;
-  onDone: (pot: { plant_id: string; soil_type: string }) => void;
+  /** 바꾸기 모드: 현재 화분의 흙 — 지정 시 식물 단계에서 시작 */
+  initialSoil?: SoilType | null;
+  /** 바꾸기 모드: 현재 화분의 식물 — 선택된 상태로 열림 */
+  initialPlantId?: string | null;
+  onDone: (pot: PickedPot) => void;
   onSkip?: () => void;
 }
 
-const CATEGORY_LABELS: Record<PlantCategory, string> = {
+type CategoryTab = PlantCategory | 'all';
+
+const CATEGORY_LABELS: Record<CategoryTab, string> = {
+  all: '전체',
   succulent: '다육이',
   houseplant: '관엽',
   flowering: '꽃',
@@ -29,37 +46,41 @@ const CATEGORY_LABELS: Record<PlantCategory, string> = {
   climber: '덩굴',
   special: '특수',
 };
-const CATEGORIES: PlantCategory[] = ['succulent', 'houseplant', 'flowering', 'herb', 'korean', 'cactus', 'climber', 'special'];
+const CATEGORIES: CategoryTab[] = ['all', 'succulent', 'houseplant', 'flowering', 'herb', 'korean', 'cactus', 'climber', 'special'];
 
 function PlantImage({ plantId, size }: { plantId: string; size: number }) {
   return <PlantArt id={plantId} stage={5} size={size} showPot={false} />;
 }
 
-export default function PlantPickerSheet({ workspaceId, year, month, onDone, onSkip }: Props) {
+export default function PlantPickerSheet({ workspaceId, year, month, initialSoil, initialPlantId, onDone, onSkip }: Props) {
   const { dragProps, sheetStyle } = useDragSheet(() => onSkip?.());
-  const [step, setStep] = useState<'soil' | 'plant'>('soil');
-  const [selectedSoil, setSelectedSoil] = useState<SoilType | null>(null);
-  const [selectedPlant, setSelectedPlant] = useState<string | null>(null);
-  const [category, setCategory] = useState<PlantCategory>('succulent');
+  const [step, setStep] = useState<'soil' | 'plant'>(initialSoil ? 'plant' : 'soil');
+  const [selectedSoil, setSelectedSoil] = useState<SoilType | null>(initialSoil ?? null);
+  const [selectedPlant, setSelectedPlant] = useState<string | null>(initialPlantId ?? null);
+  const [category, setCategory] = useState<CategoryTab>(() => {
+    if (!initialPlantId) return 'succulent';
+    return plants.find(p => p.id === initialPlantId)?.category ?? 'all';
+  });
   const [loading, setLoading] = useState(false);
 
-  const filteredPlants = plants.filter(p => p.category === category);
+  const filteredPlants = category === 'all' ? plants : plants.filter(p => p.category === category);
   const selectedPlantData = selectedPlant ? plants.find(p => p.id === selectedPlant) : null;
 
   async function handleConfirm() {
     if (!selectedSoil || !selectedPlant) return;
     setLoading(true);
     const supabase = createClient();
+    // growth_points를 payload에 넣지 않음 — 월 중 바꾸기에도 성장점수 보존
     const { data } = await supabase
       .from('monthly_pots')
       .upsert(
         { workspace_id: workspaceId, year, month, plant_id: selectedPlant, soil_type: selectedSoil, selected_at: new Date().toISOString() },
         { onConflict: 'workspace_id,year,month' }
       )
-      .select('plant_id, soil_type')
+      .select('id, month, plant_id, soil_type, growth_points, pos_x, pos_y')
       .single();
     setLoading(false);
-    if (data) onDone({ plant_id: data.plant_id, soil_type: data.soil_type });
+    if (data) onDone(data as PickedPot);
   }
 
   return (

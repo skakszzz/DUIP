@@ -267,8 +267,8 @@ export default function TodayView({ workspaceId, userId, initialItems, members, 
     if (!monthlyPotState?.plant_id) setShowPlantPicker(true);
   }
 
-  function handlePlantDone(pot: { plant_id: string; soil_type: string }) {
-    setMonthlyPotState({ ...pot, growth_points: monthlyPotState?.growth_points ?? 0 });
+  function handlePlantDone(pot: { plant_id: string; soil_type: string; growth_points: number }) {
+    setMonthlyPotState({ plant_id: pot.plant_id, soil_type: pot.soil_type, growth_points: pot.growth_points });
     setShowPlantPicker(false);
   }
 

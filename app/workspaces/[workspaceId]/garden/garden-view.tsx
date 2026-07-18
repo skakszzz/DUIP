@@ -2,16 +2,16 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
+import dynamic from 'next/dynamic';
 import { useDragSheet } from '@/lib/use-drag-sheet';
 import { EmptyGarden } from '@/components/empty-states';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
 import { plants } from '@/lib/data/plants';
-import { soilVariants } from '@/lib/data/pots';
-import { PLANT_EMOJIS } from '@/lib/data/plant-emojis';
 import { PotView } from '@/components/pot-view';
 import { stageFromPoints } from '@/lib/growth';
 import type { SoilType } from '@/lib/types';
+
+const PlantPickerSheet = dynamic(() => import('@/components/plant-picker-sheet'), { ssr: false });
 
 interface MonthlyPot {
   id: string;
@@ -133,8 +133,6 @@ export default function GardenView({ workspaceId, year, currentMonth, pots: init
   const [showTreeSheet, setShowTreeSheet] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
   const [pickerMonth, setPickerMonth] = useState<number | null>(null);
-  const [categoryFilter, setCategoryFilter] = useState('all');
-  const [saving, setSaving] = useState(false);
   const [screenshotMode, setScreenshotMode] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [showTreeName, setShowTreeName] = useState(() => {
@@ -209,45 +207,6 @@ export default function GardenView({ workspaceId, year, currentMonth, pots: init
   const selectedPot = pots.find((p) => p.month === pickerMonth);
   const totalCompleted = pots.reduce((sum, p) => sum + p.growth_points, 0);
   const bloomedPots = pots.filter((p) => stageFromPoints(p.growth_points) === 5).length;
-
-  async function selectPlant(plantId: string, soilId: SoilType) {
-    if (pickerMonth == null) return;
-    setSaving(true);
-    const supabase = createClient();
-    // row가 없는 달(월 전환 직후 등)에도 실패하지 않도록 upsert로 생성/갱신
-    const { data } = await supabase
-      .from('monthly_pots')
-      .upsert(
-        { workspace_id: workspaceId, year, month: pickerMonth, plant_id: plantId, soil_type: soilId, selected_at: new Date().toISOString() },
-        { onConflict: 'workspace_id,year,month' }
-      )
-      .select('id, month, plant_id, soil_type, growth_points, pos_x, pos_y')
-      .single();
-    if (data) {
-      const row = data as MonthlyPot;
-      setPots(prev => prev.some(p => p.id === row.id)
-        ? prev.map(p => p.id === row.id ? { ...p, ...row } : p)
-        : [...prev, row]);
-    }
-    setSaving(false);
-    setShowPicker(false);
-    router.refresh();
-  }
-
-  async function handleSoilChange(soilId: SoilType) {
-    if (!pickerMonth) return;
-    const pot = pots.find(p => p.month === pickerMonth);
-    if (!pot) return;
-    const supabase = createClient();
-    await supabase.from('monthly_pots').update({ soil_type: soilId }).eq('id', pot.id);
-    setPots(prev => prev.map(p => p.month === pickerMonth ? { ...p, soil_type: soilId } : p));
-  }
-
-  const filteredPlants = categoryFilter === 'all' ? plants : plants.filter((p) => p.category === categoryFilter);
-
-  const CATEGORY_LABELS: Record<string, string> = {
-    succulent: '다육이', houseplant: '관엽', flowering: '꽃', herb: '허브', korean: '한국 전통', cactus: '선인장', climber: '덩굴', special: '특수',
-  };
 
   return (
     <div
@@ -576,19 +535,23 @@ export default function GardenView({ workspaceId, year, currentMonth, pots: init
         />
       )}
 
-      {/* 식물 선택 시트 */}
-      {showPicker && pickerMonth !== null && selectedPot && (
+      {/* 식물 선택 시트 — 홈과 동일한 공용 시트 (바꾸기: 현재 식물·흙 선택 상태로 열림) */}
+      {showPicker && pickerMonth !== null && (
         <PlantPickerSheet
+          workspaceId={workspaceId}
+          year={year}
           month={pickerMonth}
-          pot={selectedPot}
-          filteredPlants={filteredPlants}
-          categoryFilter={categoryFilter}
-          onCategoryChange={setCategoryFilter}
-          categoryLabels={CATEGORY_LABELS}
-          saving={saving}
-          onSelect={selectPlant}
-          onClose={() => { setShowPicker(false); setPickerMonth(null); }}
-          onSoilChange={handleSoilChange}
+          initialSoil={selectedPot?.soil_type ?? null}
+          initialPlantId={selectedPot?.plant_id ?? null}
+          onDone={(row) => {
+            setPots(prev => prev.some(p => p.id === row.id)
+              ? prev.map(p => p.id === row.id ? { ...p, ...row } : p)
+              : [...prev, row]);
+            setShowPicker(false);
+            setPickerMonth(null);
+            router.refresh();
+          }}
+          onSkip={() => { setShowPicker(false); setPickerMonth(null); }}
         />
       )}
 
@@ -838,92 +801,6 @@ function TreeDetailSheet({ year, treeType, treeEmoji, treeName, totalCompleted, 
               </div>
             );
           })}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── 식물 선택 시트 ────────────────────────────────────────────────
-function PlantPickerSheet({ month, pot, filteredPlants, categoryFilter, onCategoryChange, categoryLabels, saving, onSelect, onClose, onSoilChange }: {
-  month: number;
-  pot: MonthlyPot;
-  filteredPlants: typeof plants;
-  categoryFilter: string;
-  onCategoryChange: (c: string) => void;
-  categoryLabels: Record<string, string>;
-  saving: boolean;
-  onSelect: (plantId: string, soilId: SoilType) => void;
-  onClose: () => void;
-  onSoilChange: (soilId: SoilType) => void;
-}) {
-  return (
-    <div className="fixed inset-0 z-[60] flex items-end" style={{ background: 'rgba(42,27,14,0.4)' }} onClick={onClose}>
-      <div
-        className="w-full max-w-md mx-auto"
-        style={{ background: '#FBF6EE', borderRadius: '28px 28px 0 0', padding: '0 0 40px', maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 10px' }}>
-          <div style={{ width: 36, height: 4, borderRadius: 2, background: '#D9C8AC' }}/>
-        </div>
-        <div style={{ padding: '0 16px' }}>
-          <div style={{ fontSize: 16, fontWeight: 800, color: '#2A1B0E', letterSpacing: '-0.02em', marginBottom: 4 }}>
-            {MONTH_KO[month - 1]} 식물 고르기
-          </div>
-          <div style={{ fontSize: 12, color: '#8A7359', marginBottom: 12 }}>
-            흙: <strong>{soilVariants.find(s => s.id === pot.soil_type)?.nameKo}</strong>
-          </div>
-          {/* 흙 선택 */}
-          <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-            {soilVariants.map((soil) => (
-              <button
-                key={soil.id}
-                onClick={() => onSoilChange(soil.id as SoilType)}
-                style={{
-                  flex: 1, height: 34, borderRadius: 10, border: 'none',
-                  background: pot.soil_type === soil.id ? '#5C3A1F' : '#F4EBD9',
-                  color: pot.soil_type === soil.id ? '#FBF6EE' : '#7B5530',
-                  fontSize: 11, fontWeight: 700, cursor: 'pointer',
-                }}
-              >
-                {soil.nameKo}
-              </button>
-            ))}
-          </div>
-          {/* 카테고리 필터 */}
-          <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, marginBottom: 10 }}>
-            <button onClick={() => onCategoryChange('all')} style={{ flexShrink: 0, height: 28, padding: '0 12px', borderRadius: 9999, border: 'none', background: categoryFilter === 'all' ? '#5C3A1F' : '#F4EBD9', color: categoryFilter === 'all' ? '#FBF6EE' : '#7B5530', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>전체</button>
-            {Object.entries(categoryLabels).map(([k, v]) => (
-              <button key={k} onClick={() => onCategoryChange(k)} style={{ flexShrink: 0, height: 28, padding: '0 12px', borderRadius: 9999, border: 'none', background: categoryFilter === k ? '#5C3A1F' : '#F4EBD9', color: categoryFilter === k ? '#FBF6EE' : '#7B5530', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>{v}</button>
-            ))}
-          </div>
-        </div>
-        {/* 식물 목록 */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
-            {filteredPlants.map((plant) => (
-              <button
-                key={plant.id}
-                onClick={() => onSelect(plant.id, pot.soil_type)}
-                disabled={saving}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 10,
-                  background: pot.plant_id === plant.id ? '#5C3A1F' : '#FFFCF7',
-                  borderRadius: 14, padding: '10px 12px',
-                  border: 'none', cursor: 'pointer',
-                  boxShadow: pot.plant_id === plant.id ? '0 4px 12px rgba(74,46,22,0.18)' : '0 1px 2px rgba(74,46,22,0.05)',
-                  textAlign: 'left',
-                }}
-              >
-                <div style={{ fontSize: 22, lineHeight: 1 }}>{PLANT_EMOJIS[plant.id] ?? '🌿'}</div>
-                <div>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: pot.plant_id === plant.id ? '#FBF6EE' : '#2A1B0E' }}>{plant.name.ko}</div>
-                  <div style={{ fontSize: 10, color: pot.plant_id === plant.id ? 'rgba(251,246,238,0.7)' : '#9A7553', marginTop: 1 }}>{plant.flowerLanguage}</div>
-                </div>
-              </button>
-            ))}
-          </div>
         </div>
       </div>
     </div>
