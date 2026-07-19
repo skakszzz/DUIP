@@ -62,6 +62,10 @@ export default function MemoDetailView({ workspaceId, userId, members, initialMe
   // ── 블록 조작 ──
   const update = (id: string, fn: (b: MemoBlock) => MemoBlock) => setBlocks((bs) => bs.map((b) => (b.id === id ? fn(b) : b)));
   const remove = (id: string) => setBlocks((bs) => bs.filter((b) => b.id !== id));
+  // 읽기 뷰에서도 체크 항목만 토글 가능 — 편집 진입 없이 자동 저장
+  function toggleCheckItem(blockId: string, itemId: string) {
+    update(blockId, (b) => (b.kind === 'check' ? { ...b, items: b.items.map((x) => (x.id === itemId ? { ...x, done: !x.done } : x)) } : b));
+  }
   function addBlock(kind: MemoBlock['kind']) {
     const base = { id: uid(), author: userId };
     const b: MemoBlock =
@@ -92,7 +96,7 @@ export default function MemoDetailView({ workspaceId, userId, members, initialMe
 
   return (
     <div style={{ minHeight: '100dvh', background: T.cream, ...(mode === 'read' ? NO_SELECT : null) }}>
-      <div style={{ maxWidth: 448, margin: '0 auto', padding: '14px 16px 150px' }}>
+      <div style={{ maxWidth: 448, margin: '0 auto', paddingTop: 'calc(14px + env(safe-area-inset-top, 0px))', paddingLeft: 16, paddingRight: 16, paddingBottom: 150 }}>
         {/* 헤더 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
           <button onClick={() => router.push(`/workspaces/${workspaceId}/memos`)} style={{ width: 36, height: 36, borderRadius: 9999, background: T.paper, boxShadow: T.sh1, border: 'none', display: 'grid', placeItems: 'center', cursor: 'pointer', flexShrink: 0 }} aria-label="뒤로">
@@ -148,7 +152,9 @@ export default function MemoDetailView({ workspaceId, userId, members, initialMe
         {mode === 'read' ? (
           hasContent ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-              {blocks.map((b) => <BlockRead key={b.id} block={b} />)}
+              {blocks.map((b) => (
+                <BlockRead key={b.id} block={b} onToggleItem={(itemId) => toggleCheckItem(b.id, itemId)} />
+              ))}
             </div>
           ) : (
             <div style={{ textAlign: 'center', padding: '40px 0', color: T.inkFade, fontSize: 13.5, lineHeight: 1.6 }}>
@@ -217,8 +223,8 @@ export default function MemoDetailView({ workspaceId, userId, members, initialMe
   );
 }
 
-// ── 읽기(완성) 뷰 블록 렌더 — 순수 보기 전용, 가이드/체크토글 없음 ─────
-function BlockRead({ block }: { block: MemoBlock }) {
+// ── 읽기(완성) 뷰 블록 렌더 — 순수 보기 전용. 단, 체크 항목은 토글 가능(자동 저장) ─
+function BlockRead({ block, onToggleItem }: { block: MemoBlock; onToggleItem: (itemId: string) => void }) {
   if (block.kind === 'text') {
     if (!block.text.trim()) return null;
     return <div style={{ fontSize: 15.5, color: T.inkSoft, lineHeight: 1.7, letterSpacing: '-0.01em', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{block.text}</div>;
@@ -228,12 +234,16 @@ function BlockRead({ block }: { block: MemoBlock }) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
         {block.items.map((it) => (
-          <div key={it.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '3px 0' }}>
+          <button
+            key={it.id}
+            onClick={() => onToggleItem(it.id)}
+            style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '3px 0', width: '100%', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}
+          >
             <span style={{ width: 20, height: 20, borderRadius: 6, flex: '0 0 auto', marginTop: 1, background: it.done ? T.wood700 : 'transparent', boxShadow: it.done ? 'none' : `inset 0 0 0 2px ${T.taupe}`, display: 'grid', placeItems: 'center' }}>
               {it.done && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5 10 17.5 19 7.5" /></svg>}
             </span>
             <span style={{ fontSize: 15, color: it.done ? T.inkFade : T.ink, textDecorationLine: it.done ? 'line-through' : 'none', textDecorationColor: T.inkFade, lineHeight: 1.5, letterSpacing: '-0.01em' }}>{it.text || '항목'}</span>
-          </div>
+          </button>
         ))}
       </div>
     );
