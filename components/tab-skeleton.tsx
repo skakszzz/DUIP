@@ -11,7 +11,7 @@ export default function TabSkeleton({ variant = 'home' }: Props) {
 
   return (
     <div className="duip-page-enter" style={{ paddingBottom: 96 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 18px 18px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 'calc(8px + env(safe-area-inset-top, 0px))', paddingLeft: 18, paddingRight: 18, paddingBottom: 18 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {bar(70, 11)}
           {bar(130, 20)}

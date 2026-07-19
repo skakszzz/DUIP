@@ -120,7 +120,7 @@ export function Onboarding({
   if (step === 1) {
     return (
       <Shell dot={1}>
-        <div style={{ position: 'relative', zIndex: 2, flex: 1, padding: '40px 28px 0' }}>
+        <div style={{ position: 'relative', zIndex: 2, flex: 1, paddingTop: 'calc(40px + env(safe-area-inset-top, 0px))', paddingLeft: 28, paddingRight: 28 }}>
           <h1 style={{ fontSize: 24, fontWeight: 700, color: T.ink, letterSpacing: '-0.025em', lineHeight: 1.34 }}>
             함께할 사람을<br />초대해요
           </h1>
@@ -171,7 +171,7 @@ export function Onboarding({
   // ── Step 3 · 첫 씨앗 ──
   return (
     <Shell dot={2}>
-      <div style={{ position: 'relative', zIndex: 2, flex: 1, padding: '40px 28px 0' }}>
+      <div style={{ position: 'relative', zIndex: 2, flex: 1, paddingTop: 'calc(40px + env(safe-area-inset-top, 0px))', paddingLeft: 28, paddingRight: 28 }}>
         <h1 style={{ fontSize: 24, fontWeight: 700, color: T.ink, letterSpacing: '-0.025em', lineHeight: 1.34 }}>
           {month}월의 첫 씨앗을<br />골라볼까요
         </h1>

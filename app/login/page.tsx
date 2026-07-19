@@ -135,7 +135,8 @@ export default function LoginPage() {
           <div style={{
             background: '#F2E7A0', color: '#5C3A1F',
             fontSize: 12.5, fontWeight: 600, lineHeight: 1.55,
-            padding: '10px 16px',
+            paddingTop: 'calc(10px + env(safe-area-inset-top, 0px))',
+            paddingLeft: 16, paddingRight: 16, paddingBottom: 10,
             textAlign: 'center',
           }}>
             카카오톡 브라우저에서는 설치와 로그인이 안 될 수 있어요.<br/>

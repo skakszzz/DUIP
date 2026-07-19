@@ -55,7 +55,7 @@ export default function MemoDrawCanvas({ initial, onSave, onCancel }: Props) {
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 200, background: '#FFFDF8', display: 'flex', flexDirection: 'column' }}>
       {/* 상단바 */}
-      <div style={{ display: 'flex', alignItems: 'center', padding: '14px 14px 8px', gap: 8 }}>
+      <div style={{ display: 'flex', alignItems: 'center', paddingTop: 'calc(14px + env(safe-area-inset-top, 0px))', paddingLeft: 14, paddingRight: 14, paddingBottom: 8, gap: 8 }}>
         <button onClick={onCancel} style={{ height: 36, padding: '0 14px', borderRadius: 9999, background: '#FFFCF7', border: 'none', boxShadow: '0 1px 2px rgba(74,46,22,0.05)', fontSize: 13, fontWeight: 700, color: '#7B5530', cursor: 'pointer' }}>취소</button>
         <div style={{ flex: 1, textAlign: 'center', fontSize: 14, fontWeight: 800, color: '#2A1B0E' }}>그리기</div>
         <button onClick={() => onSave(strokes)} style={{ height: 36, padding: '0 16px', borderRadius: 9999, background: '#5C3A1F', color: '#FBF6EE', border: 'none', fontSize: 13, fontWeight: 800, cursor: 'pointer' }}>완료</button>

@@ -123,7 +123,7 @@ export default function NewWorkspacePage() {
 
   return (
     <div className="min-h-screen bg-[#FBF6EE]">
-      <div className="max-w-md mx-auto px-4 pt-8 pb-24">
+      <div className="max-w-md mx-auto px-4 pb-24 pt-[calc(2rem+env(safe-area-inset-top,0px))]">
         <div className="flex items-center gap-3 mb-8">
           <Link
             href="/workspaces"
