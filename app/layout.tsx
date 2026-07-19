@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Gowun_Dodum } from 'next/font/google';
 import { ServiceWorkerRegistrar } from '@/components/service-worker-registrar';
+import { IosZoomReset } from '@/components/ios-zoom-reset';
 import { ToastProvider } from '@/components/toast';
 import './globals.css';
 
@@ -48,6 +49,7 @@ export default function RootLayout({
     <html lang="ko" className={`h-full ${gowunDodum.variable}`}>
       <body className="min-h-full bg-[#FBF6EE]">
         <ServiceWorkerRegistrar />
+        <IosZoomReset />
         <ToastProvider>{children}</ToastProvider>
       </body>
     </html>
