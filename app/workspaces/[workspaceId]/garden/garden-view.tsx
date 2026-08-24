@@ -8,6 +8,7 @@ import { EmptyGarden } from '@/components/empty-states';
 import { useRouter } from 'next/navigation';
 import { plants } from '@/lib/data/plants';
 import { PotView } from '@/components/pot-view';
+import { GrowthEventList, type GrowthEvent } from '@/components/growth-event-list';
 import { stageFromPoints } from '@/lib/growth';
 import type { SoilType } from '@/lib/types';
 
@@ -27,6 +28,7 @@ interface MonthStat {
   month: number;
   completedCount: number;
   items: MonthItem[];
+  growthEvents: GrowthEvent[];
 }
 
 interface MonthItem {
@@ -612,6 +614,16 @@ function MonthDetailSheet({ month, pot, completed, stat, onClose, onPickPlant }:
             바꾸기
           </button>
         </div>
+
+        {/* 자란 잎과 꽃 — growth_events */}
+        {stat && stat.growthEvents.length > 0 && (
+          <div style={{ marginBottom: 20, flexShrink: 0 }}>
+            <div style={{ fontSize: 11, fontWeight: 800, color: '#9A7553', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 10 }}>
+              자란 잎과 꽃
+            </div>
+            <GrowthEventList events={stat.growthEvents} />
+          </div>
+        )}
 
         {/* 통계 타일 */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 20, flexShrink: 0 }}>

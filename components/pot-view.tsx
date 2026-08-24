@@ -64,8 +64,8 @@ export function PotView({ soilId, plantId, stage, size = 200, preferArtwork }: P
         style={{ objectFit: 'fill' }}
       />
 
-      {/* 상단 레이어: 원화 WebP 또는 SVG */}
-      {stage >= 2 && plantId && (
+      {/* 상단 레이어: 원화 WebP 또는 SVG (stage 1은 실사 이미지가 없어 항상 SVG 새싹) */}
+      {plantId && (
         <div style={{ position: 'absolute', top: offsetPx, left: 0, width: size, height: size }}>
           {showArtwork ? (
             <Image

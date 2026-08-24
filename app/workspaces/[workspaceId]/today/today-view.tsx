@@ -18,6 +18,7 @@ import { RecurrenceEditor } from '@/components/recurrence-editor';
 import DateInput from '@/components/date-input';
 import PushBanner from '@/components/push-banner';
 import { PlantNameLabel } from '@/components/plant-name-label';
+import { GrowthEventList, type GrowthEvent } from '@/components/growth-event-list';
 import Link from 'next/link';
 
 const ItemEditModal = dynamic(() => import('@/components/item-edit-modal'), { ssr: false });
@@ -63,6 +64,7 @@ interface Props {
   workspaceName: string;
   serverToday: string;
   monthlyPot: MonthlyPot | null;
+  growthEvents: GrowthEvent[];
   treeType: string;
   treeSelectedYear: number | null;
   currentUser: { displayName: string; avatar: string; color: string };
@@ -113,12 +115,13 @@ function Bucket({ label, count }: { label: string; count?: number }) {
 
 // ── 이번 달 식물 카드 ─────────────────────────────────────────────
 function MonthlyPlantCard({
-  month, completedCount, total, expanded, onToggle, monthlyPot, onBloom,
+  month, completedCount, total, expanded, onToggle, monthlyPot, onBloom, growthEvents,
 }: {
   month: number; completedCount: number; total: number;
   expanded: boolean; onToggle: () => void;
   monthlyPot: MonthlyPot | null;
   onBloom: () => void;
+  growthEvents: GrowthEvent[];
 }) {
   const pct = total > 0 ? completedCount / total : 0;
   const pts = monthlyPot?.growth_points ?? 0;
@@ -225,12 +228,19 @@ function MonthlyPlantCard({
           <path d="M18 15l-6-6-6 6"/>
         </svg>
       </div>
+
+      {/* 이번 화분이 무엇으로 자랐는지 — growth_events */}
+      {growthEvents.length > 0 && (
+        <div style={{ position: 'relative', marginTop: 14, paddingTop: 12, borderTop: '1px solid rgba(154,117,83,0.14)' }}>
+          <GrowthEventList events={growthEvents} />
+        </div>
+      )}
     </div>
   );
 }
 
 // ── 메인 컴포넌트 ────────────────────────────────────────────────
-export default function TodayView({ workspaceId, userId, initialItems, members, workspaceName, serverToday, monthlyPot, treeType: initialTreeType, treeSelectedYear, currentUser }: Props) {
+export default function TodayView({ workspaceId, userId, initialItems, members, workspaceName, serverToday, monthlyPot, growthEvents, treeType: initialTreeType, treeSelectedYear, currentUser }: Props) {
   const { showToast } = useToast();
   const router = useRouter();
   const serverTodayRef = useRef(serverToday);
@@ -557,6 +567,7 @@ export default function TodayView({ workspaceId, userId, initialItems, members, 
             expanded={plantExpanded}
             onToggle={() => setPlantExpanded((v) => !v)}
             monthlyPot={monthlyPotState}
+            growthEvents={growthEvents}
             onBloom={() => {
               if (!bloomShownRef.current) {
                 bloomShownRef.current = true;

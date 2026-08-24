@@ -21,7 +21,13 @@ export default async function TodayPage({ params }: Props) {
   const today = `${_now.getFullYear()}-${String(_now.getMonth()+1).padStart(2,'0')}-${String(_now.getDate()).padStart(2,'0')}`;
   const inThirtyDays = new Date(_now.getFullYear(), _now.getMonth(), _now.getDate() + 30).toISOString().slice(0, 10);
 
-  // ── 2단계: 독립 쿼리 6개 동시 실행 (monthly_pots select 포함) ──
+  // 이번 달 범위 (growth_events 조회용) — done_on은 date 컬럼이라 문자열로 직접 경계 계산
+  const _year = _now.getFullYear();
+  const _month = _now.getMonth() + 1;
+  const monthStart = `${_year}-${String(_month).padStart(2, '0')}-01`;
+  const monthEnd = _month === 12 ? `${_year + 1}-01-01` : `${_year}-${String(_month + 1).padStart(2, '0')}-01`;
+
+  // ── 2단계: 독립 쿼리 7개 동시 실행 (monthly_pots select 포함) ──
   const [
     { data: workspace },
     { data: wsExtra },
@@ -29,6 +35,7 @@ export default async function TodayPage({ params }: Props) {
     { data: members },
     { data: items },
     { data: existingPot },
+    { data: growthEvents },
   ] = await Promise.all([
     supabase.from('workspaces').select('id, name, tree_type').eq('id', workspaceId).maybeSingle(),
     supabase.from('workspaces').select('tree_selected_year').eq('id', workspaceId).maybeSingle(),
@@ -45,6 +52,12 @@ export default async function TodayPage({ params }: Props) {
       .eq('year', _now.getFullYear())
       .eq('month', _now.getMonth() + 1)
       .maybeSingle(),
+    supabase.from('growth_events')
+      .select('id, title, kind')
+      .eq('workspace_id', workspaceId)
+      .gte('done_on', monthStart)
+      .lt('done_on', monthEnd)
+      .order('done_on', { ascending: true }),
   ]);
 
   if (!workspace) redirect('/workspaces');
@@ -79,6 +92,7 @@ export default async function TodayPage({ params }: Props) {
       workspaceName={workspace.name}
       serverToday={today}
       monthlyPot={monthlyPot ?? null}
+      growthEvents={growthEvents ?? []}
       treeType={workspace.tree_type}
       treeSelectedYear={treeSelectedYear}
       currentUser={{

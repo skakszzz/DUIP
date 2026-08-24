@@ -550,7 +550,14 @@ const PlantArt = ({ id, stage = 3, size = 120, showPot = true, style = undefined
   return (
     <svg width={size} height={size} viewBox="0 0 120 120" fill="none" style={style}>
       {showPot && <ArtPot />}
-      {stage <= 1 ? <ArtSoil seed={cat.bcolor || cat.blossom || cat.cap || cat.tip || '#C9A86B'} /> : render(cat, stage)}
+      {stage <= 0 ? (
+        <ArtSoil seed={cat.bcolor || cat.blossom || cat.cap || cat.tip || '#C9A86B'} />
+      ) : stage === 1 ? (
+        // 1단계 = 어린 싹: 2단계 형태를 기준점(60,78)에서 축소해 재사용 (기존 stage별 크기 스케일 그대로 활용)
+        <g transform="translate(60 78) scale(0.42) translate(-60 -78)">{render(cat, 2)}</g>
+      ) : (
+        render(cat, stage)
+      )}
     </svg>
   );
 };

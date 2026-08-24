@@ -18,12 +18,13 @@ export default async function GardenPage({ params }: Props) {
   const year = now.getFullYear();
   const currentMonth = now.getMonth() + 1;
 
-  // 독립 쿼리 4개 동시 실행
+  // 독립 쿼리 5개 동시 실행
   const [
     { data: workspace },
     { data: membership },
     { data: pots },
     { data: allItems },
+    { data: yearGrowthEvents },
   ] = await Promise.all([
     supabase.from('workspaces').select('id, name, tree_type').eq('id', workspaceId).single(),
     supabase.from('memberships').select('display_name').eq('workspace_id', workspaceId).eq('user_id', user.id).single(),
@@ -36,6 +37,12 @@ export default async function GardenPage({ params }: Props) {
       .select('id, title, type, is_completed, created_at')
       .eq('workspace_id', workspaceId)
       .order('created_at', { ascending: false }),
+    supabase.from('growth_events')
+      .select('id, title, kind, done_on')
+      .eq('workspace_id', workspaceId)
+      .gte('done_on', `${year}-01-01`)
+      .lte('done_on', `${year}-12-31`)
+      .order('done_on', { ascending: true }),
   ]);
 
   if (!workspace) redirect('/workspaces');
@@ -62,7 +69,11 @@ export default async function GardenPage({ params }: Props) {
       const d = new Date(item.created_at);
       return d.getFullYear() === year && d.getMonth() + 1 === month;
     });
-    return { month, completedCount: items.filter((item) => item.is_completed).length, items };
+    // done_on(date 컬럼)은 타임존 변환 없이 문자열에서 바로 월 추출
+    const growthEvents = (yearGrowthEvents ?? [])
+      .filter((e) => Number(e.done_on.slice(5, 7)) === month)
+      .map((e) => ({ id: e.id, title: e.title, kind: e.kind as 'leaf' | 'flower' }));
+    return { month, completedCount: items.filter((item) => item.is_completed).length, items, growthEvents };
   });
 
   return (
