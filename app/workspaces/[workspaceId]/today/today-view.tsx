@@ -407,6 +407,9 @@ export default function TodayView({ workspaceId, userId, initialItems, members, 
           prev ? { ...prev, growth_points: Math.max(0, (prev.growth_points ?? 0) + (next ? -1 : 1)) } : prev
         );
         showToast('잠시 후 다시 시도해주세요', 'error');
+      } else {
+        // growth_events는 서버 컴포넌트에서 조회되므로 성공했을 때만 다시 불러옴
+        router.refresh();
       }
     } else {
       setItems((prev) => prev.map((i) =>
@@ -426,6 +429,8 @@ export default function TodayView({ workspaceId, userId, initialItems, members, 
           prev ? { ...prev, growth_points: Math.max(0, (prev.growth_points ?? 0) + (next ? -1 : 1)) } : prev
         );
         showToast('잠시 후 다시 시도해주세요', 'error');
+      } else {
+        router.refresh();
       }
     }
   }
